@@ -5,7 +5,9 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME              => 'App::Normalo',
     VERSION_FROM      => 'lib/App/Normalo.pm', # finds $VERSION, requires EU::MM from perl >= 5.5
-    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
+    PREREQ_PM         => {
+        'Text::Unidecode' => 0,
+    },
     ABSTRACT_FROM     => 'lib/App/Normalo.pm', # retrieve abstract from module
     AUTHOR            => 'Henry Till <ht@>',
     EXE_FILES         => ['bin/normalo'],

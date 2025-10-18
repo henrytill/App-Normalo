@@ -4,6 +4,12 @@ use 5.040001;
 use strict;
 use warnings;
 
+use Encode qw(decode);
+use English qw(-no_match_vars);
+use File::Basename qw(basename dirname fileparse);
+use File::Spec::Functions qw(catfile);
+use Text::Unidecode qw(unidecode);
+
 our @ISA = qw();
 
 our $VERSION = '0.01';
@@ -11,44 +17,109 @@ our $VERSION = '0.01';
 
 # Preloaded methods go here.
 
+sub convert {
+    my ($filename) = @_;
+
+    # Split filename into stem and extension
+    my ($stem, undef, $extension) = fileparse($filename, qr/ [.] [^.]* /smx);
+
+    # Convert UTF-8 to ASCII with transliteration
+    my $converted = unidecode decode 'UTF-8', $stem;
+
+    # Convert to lowercase
+    $converted = lc $converted;
+
+    # Replace spaces, underscores, and dots with hyphens
+    $converted =~ tr/ _./-/;
+
+    # Remove non-alphanumeric characters (keep hyphens only)
+    $converted =~ s{ [^[:alnum:]-] }{}smxg;
+
+    # Replace multiple consecutive hyphens with single hyphen
+    $converted =~ s{ -+ }{-}smxg;
+
+    # Rejoin with extension if present
+    return $extension ? $converted . $extension : $converted;
+}
+
 sub run {
     my ($class, @args) = @_;
+
+    foreach my $path (@args) {
+        if (!-f $path) {
+            print {*STDERR} $path . " is not a regular file\n"
+                or die 'Cannot write to STDERR: ' . $OS_ERROR . "\n";
+            return 1;
+        }
+
+        my $filename = basename $path;
+        my $dir = dirname $path;
+        my $kebab_filename = convert $filename;
+
+        if ($kebab_filename ne $filename) {
+            my $new_path = catfile($dir, $kebab_filename);
+            rename $path, $new_path
+                or die 'Failed to rename ' . $path . ' to ' . $new_path . ': ' . $OS_ERROR . "\n";
+        }
+    }
 
     return 0;
 }
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-App::Normalo - Perl extension for blah blah blah
+App::Normalo - Normalize filenames to kebab-case
 
 =head1 SYNOPSIS
 
   use App::Normalo;
-  blah blah blah
+
+  # Convert a filename to kebab-case
+  my $normalized = App::Normalo::convert('My File Name.txt');
+  # Returns: my-file-name.txt
+
+  # Run as an application
+  App::Normalo->run(@ARGV);
 
 =head1 DESCRIPTION
 
-Stub documentation for App::Normalo, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
+App::Normalo normalizes filenames by converting them to kebab-case format.
+It performs the following transformations:
 
-Blah blah blah.
+=over 4
 
+=item * Converts UTF-8 characters to ASCII equivalents (transliteration)
 
-=head1 SEE ALSO
+=item * Converts to lowercase
 
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
+=item * Replaces spaces, underscores, and dots with hyphens
 
-If you have a mailing list set up for your module, mention it here.
+=item * Removes non-alphanumeric characters (except hyphens)
 
-If you have a web site set up for your module, mention it here.
+=item * Collapses multiple consecutive hyphens into a single hyphen
+
+=item * Preserves file extensions
+
+=back
+
+=head1 FUNCTIONS
+
+=head2 convert($filename)
+
+Converts a filename to kebab-case format and returns the normalized filename.
+Does not modify files on disk.
+
+=head2 run($class, @args)
+
+Command-line interface. Renames files specified in @args to their kebab-case
+equivalents. Returns 0 on success, 1 on error.
+
+=head1 COMMAND LINE USAGE
+
+  normalo file1.txt file2.txt ...
 
 =head1 AUTHOR
 
