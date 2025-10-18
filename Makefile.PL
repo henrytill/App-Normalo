@@ -15,3 +15,11 @@ WriteMakefile(
     #Value must be from legacy list of licenses here
     #https://metacpan.org/pod/Module::Build::API
 );
+
+sub MY::postamble {
+    return <<'MAKE_FRAG';
+format:
+	perltidy Makefile.PL $(TO_INST_PM) $(EXE_FILES) $(TEST_FILES)
+
+MAKE_FRAG
+}
