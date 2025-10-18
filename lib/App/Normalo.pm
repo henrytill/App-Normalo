@@ -11,6 +11,12 @@ our $VERSION = '0.01';
 
 # Preloaded methods go here.
 
+sub run {
+    my ($class, @args) = @_;
+
+    return 0;
+}
+
 1;
 __END__
 # Below is stub documentation for your module. You'd better edit it!

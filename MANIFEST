@@ -2,5 +2,6 @@ Changes
 Makefile.PL
 MANIFEST
 README
+bin/normalo
 t/App-Normalo.t
 lib/App/Normalo.pm
