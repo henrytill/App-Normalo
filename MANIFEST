@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/App-Normalo.t
+lib/App/Normalo.pm

@@ -1,0 +1,6 @@
+Revision history for Perl extension App::Normalo.
+
+0.01  Sat Oct 18 16:16:33 2025
+	- original version; created by h2xs 1.23 with options
+		-AX --skip-exporter --use-new-tests -n App::Normalo
+
