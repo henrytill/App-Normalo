@@ -37,8 +37,8 @@ sub convert {
     # Replace multiple consecutive hyphens with single hyphen
     $converted =~ s{ -+ }{-}smxg;
 
-    # Rejoin with extension if present
-    return $extension ? $converted . $extension : $converted;
+    # Rejoin with extension if present (lowercase the extension too)
+    return $extension ? $converted . lc $extension : $converted;
 }
 
 sub run {
