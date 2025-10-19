@@ -8,6 +8,7 @@ use Encode qw(decode);
 use English qw(-no_match_vars);
 use File::Basename qw(basename dirname fileparse);
 use File::Spec::Functions qw(catfile);
+use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
 our $VERSION = '0.01';
@@ -41,6 +42,47 @@ sub convert {
 
 sub run {
     my ($class, @args) = @_;
+
+    my $help = 0;
+    my $version = 0;
+
+    GetOptionsFromArray(
+        \@args,
+        'help|h' => \$help,
+        'version|v' => \$version,
+        )
+        or do {
+        print {*STDERR} "Try 'normalo --help' for more information.\n";
+        return 1;
+        };
+
+    if ($version) {
+        print "normalo version $VERSION\n";
+        return 0;
+    }
+
+    if ($help) {
+        print <<'END_HELP';
+Usage: normalo [OPTIONS] FILE...
+
+Normalize filenames to kebab-case format.
+
+Options:
+  -h, --help       Display this help message and exit
+  -v, --version    Display version information and exit
+
+Examples:
+  normalo "My File.txt"
+  normalo file1.txt file2.txt file3.txt
+END_HELP
+        return 0;
+    }
+
+    if (!@args) {
+        print {*STDERR} "normalo: missing file operand\n";
+        print {*STDERR} "Try 'normalo --help' for more information.\n";
+        return 1;
+    }
 
     foreach my $path (@args) {
         if (!-f $path) {
@@ -119,7 +161,15 @@ equivalents. Returns 0 on success, 1 on error.
 
 =head1 COMMAND LINE USAGE
 
-  normalo file1.txt file2.txt ...
+  normalo [OPTIONS] FILE...
+
+  Options:
+    -h, --help       Display help message and exit
+    -v, --version    Display version information and exit
+
+  Examples:
+    normalo "My File.txt"
+    normalo file1.txt file2.txt file3.txt
 
 =head1 DIAGNOSTICS
 
@@ -152,6 +202,8 @@ App::Normalo requires no configuration files or environment variables.
 =item * File::Basename (core module)
 
 =item * File::Spec::Functions (core module)
+
+=item * Getopt::Long (core module)
 
 =back
 
