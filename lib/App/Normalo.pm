@@ -54,8 +54,8 @@ sub run {
         'version|v' => \$version,
         )
         or do {
-        print {*STDERR} "Try '$progname --help' for more information.\n";
-        return 1;
+            print {*STDERR} "Try '$progname --help' for more information.\n";
+            return 1;
         };
 
     if ($version) {
