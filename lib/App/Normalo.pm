@@ -44,8 +44,7 @@ sub run {
 
     foreach my $path (@args) {
         if (!-f $path) {
-            print {*STDERR} $path . " is not a regular file\n"
-                or die 'Cannot write to STDERR: ' . $OS_ERROR . "\n";
+            print {*STDERR} $path . " is not a regular file\n";
             return 1;
         }
 
