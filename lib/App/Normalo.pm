@@ -11,7 +11,7 @@ use File::Spec::Functions qw(catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 # Preloaded methods go here.
 
@@ -27,8 +27,9 @@ sub convert {
     # Convert to lowercase
     $converted = lc $converted;
 
-    # Replace spaces, underscores, and dots with hyphens
+    # Replace spaces, underscores, dots, and control characters with hyphens
     $converted =~ tr/ _./-/;
+    $converted =~ s{ [[:cntrl:]] }{-}smxg;
 
     # Remove non-alphanumeric characters (keep hyphens only)
     $converted =~ s{ [^[:alnum:]-] }{}smxg;
@@ -125,7 +126,7 @@ App::Normalo - Normalize filenames to kebab-case
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =head1 DESCRIPTION
 
@@ -138,7 +139,7 @@ It performs the following transformations:
 
 =item * Converts to lowercase
 
-=item * Replaces spaces, underscores, and dots with hyphens
+=item * Replaces spaces, underscores, dots, and control characters with hyphens
 
 =item * Removes non-alphanumeric characters (except hyphens)
 

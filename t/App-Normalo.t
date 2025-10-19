@@ -31,5 +31,14 @@ is(App::Normalo::convert('file.tar.gz'), 'file-tar.gz', 'Extension preserved');
 
 is(App::Normalo::convert('Café_2024 (Final).PDF'), 'cafe-2024-final.pdf', 'Complex mixed case');
 
+is(App::Normalo::convert("file\nwith\nnewlines.txt"),
+    'file-with-newlines.txt', 'Newlines converted to hyphens');
+
+is(App::Normalo::convert("file\twith\ttabs.txt"),
+    'file-with-tabs.txt', 'Tabs converted to hyphens');
+
+is(App::Normalo::convert("file\n\n\twith\t\tmultiple.txt"),
+    'file-with-multiple.txt', 'Multiple control characters collapse to single hyphen');
+
 done_testing();
 
