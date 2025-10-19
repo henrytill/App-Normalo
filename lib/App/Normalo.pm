@@ -45,25 +45,20 @@ sub run {
     my ($class, @args) = @_;
 
     my $progname = basename $PROGRAM_NAME;
-    my $help = 0;
-    my $version = 0;
+    my %opts;
 
-    GetOptionsFromArray(
-        \@args,
-        'help|h' => \$help,
-        'version|v' => \$version,
-        )
+    GetOptionsFromArray(\@args, \%opts, 'help|h', 'version|v',)
         or do {
             print {*STDERR} "Try '$progname --help' for more information.\n";
             return 1;
         };
 
-    if ($version) {
+    if ($opts{version}) {
         print "$progname version $VERSION\n";
         return 0;
     }
 
-    if ($help) {
+    if ($opts{help}) {
         print <<"END_HELP";
 Usage: $progname [OPTIONS] FILE...
 
