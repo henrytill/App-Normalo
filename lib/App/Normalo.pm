@@ -1,6 +1,6 @@
 package App::Normalo;
 
-use 5.040001;
+use 5.040000;
 use strict;
 use warnings;
 
@@ -129,7 +129,7 @@ Henry Till, E<lt>ht@E<gt>
 Copyright (C) 2025 by Henry Till
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.40.1 or,
+it under the same terms as Perl itself, either Perl version 5.40.0 or,
 at your option, any later version of Perl 5 you may have available.
 
 
