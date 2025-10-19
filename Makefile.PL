@@ -1,6 +1,22 @@
 use 5.040000;
 use ExtUtils::MakeMaker;
 
+my %direnv_symlinks;
+
+# Record and unlink .direnv symlinks
+if (-d '.direnv' && !-f 'Makefile') {
+    opendir(my $dh, '.direnv') or die "Cannot open .direnv: $!";
+    while (my $entry = readdir($dh)) {
+        next if $entry eq '.' || $entry eq '..';
+        my $path = ".direnv/$entry";
+        if (-l $path) {
+            $direnv_symlinks{$path} = readlink($path);
+            unlink($path) or warn "Could not unlink $path: $!";
+        }
+    }
+    closedir($dh);
+}
+
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
@@ -27,4 +43,11 @@ critic:
 	perlcritic Makefile.PL $(TO_INST_PM) $(EXE_FILES) $(TEST_FILES)
 
 MAKE_FRAG
+}
+
+# Restore .direnv symlinks
+END {
+    while (my ($path, $target) = each %direnv_symlinks) {
+        symlink($target, $path) or warn "Could not restore symlink $path: $!";
+    }
 }
