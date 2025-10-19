@@ -100,6 +100,9 @@ severity   = 2
 [Perl::Critic::Policy::Documentation::RequirePodSections]
 severity   = 2
 
+[Perl::Critic::Policy::Documentation::PodSpelling]
+stop_words = UTF kebab
+
 [Perl::Critic::Policy::ErrorHandling::RequireCarping]
 severity   = 4
 
