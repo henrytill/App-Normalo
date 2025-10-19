@@ -11,7 +11,7 @@ use File::Spec::Functions qw(catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 # Preloaded methods go here.
 
@@ -93,6 +93,12 @@ END_HELP
 
         if ($kebab_filename ne $filename) {
             my $new_path = catfile($dir, $kebab_filename);
+
+            if (-e $new_path) {
+                print {*STDERR} "Cannot rename $path to $new_path: target already exists\n";
+                return 1;
+            }
+
             rename $path, $new_path
                 or die 'Failed to rename ' . $path . ' to ' . $new_path . ': ' . $OS_ERROR . "\n";
         }
@@ -120,7 +126,7 @@ App::Normalo - Normalize filenames to kebab-case
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =head1 DESCRIPTION
 

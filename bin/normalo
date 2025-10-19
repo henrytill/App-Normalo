@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use App::Normalo;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 exit App::Normalo->run(@ARGV);
 
@@ -73,6 +73,10 @@ Display version information and exit.
 =item C<< %s is not a regular file >>
 
 The specified path is not a regular file. Only regular files can be renamed.
+
+=item C<< Cannot rename %s to %s: target already exists >>
+
+The target filename already exists. B<normalo> will not overwrite existing files.
 
 =item C<< Failed to rename %s to %s: %s >>
 

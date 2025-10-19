@@ -1,5 +1,8 @@
 Revision history for Perl extension App::Normalo.
 
+0.03  Sat Oct 18 21:46:22 2025
+	- Prevent file clobbering by checking if target exists before renaming
+
 0.02  Sat Oct 18 20:12:47 2025
 	- Convert control characters to hyphens instead of removing them
 
