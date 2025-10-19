@@ -10,8 +10,6 @@ use File::Basename qw(basename dirname fileparse);
 use File::Spec::Functions qw(catfile);
 use Text::Unidecode qw(unidecode);
 
-our @ISA = qw();
-
 our $VERSION = '0.01';
 
 # Preloaded methods go here.
@@ -83,6 +81,10 @@ App::Normalo - Normalize filenames to kebab-case
   # Run as an application
   App::Normalo->run(@ARGV);
 
+=head1 VERSION
+
+Version 0.01
+
 =head1 DESCRIPTION
 
 App::Normalo normalizes filenames by converting them to kebab-case format.
@@ -104,7 +106,7 @@ It performs the following transformations:
 
 =back
 
-=head1 FUNCTIONS
+=head1 SUBROUTINES/METHODS
 
 =head2 convert($filename)
 
@@ -120,11 +122,55 @@ equivalents. Returns 0 on success, 1 on error.
 
   normalo file1.txt file2.txt ...
 
+=head1 DIAGNOSTICS
+
+=over 4
+
+=item C<< %s is not a regular file >>
+
+The specified path is not a regular file. Only regular files can be renamed.
+
+=item C<< Failed to rename %s to %s: %s >>
+
+The rename operation failed. The error message from the system is included.
+
+=back
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+App::Normalo requires no configuration files or environment variables.
+
+=head1 DEPENDENCIES
+
+=over 4
+
+=item * Text::Unidecode
+
+=item * Encode (core module)
+
+=item * English (core module)
+
+=item * File::Basename (core module)
+
+=item * File::Spec::Functions (core module)
+
+=back
+
+=head1 INCOMPATIBILITIES
+
+None reported.
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to the author.
+
 =head1 AUTHOR
 
 Henry Till, E<lt>henrytill@gmail.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (C) 2025 by Henry Till
 
