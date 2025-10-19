@@ -1,3 +1,4 @@
+use 5.040000;
 use strict;
 use warnings;
 
