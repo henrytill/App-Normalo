@@ -39,6 +39,7 @@
         devShell = pkgs.mkShell {
           inputsFrom = [ pkgs.perlPackages.AppNormalo ];
           buildInputs = with pkgs; [
+            perlcritic
             perlPackages.PerlTidy
           ];
         };

@@ -23,5 +23,8 @@ sub MY::postamble {
 format:
 	perltidy Makefile.PL $(TO_INST_PM) $(EXE_FILES) $(TEST_FILES)
 
+critic:
+	perlcritic Makefile.PL $(TO_INST_PM) $(EXE_FILES) $(TEST_FILES)
+
 MAKE_FRAG
 }
