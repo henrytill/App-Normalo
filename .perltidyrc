@@ -1,6 +1,7 @@
 -b
 -bext='/'
 -ci=4
+-fnl
 -l=100
 -nvc
 -pt=2
