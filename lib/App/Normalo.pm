@@ -43,6 +43,7 @@ sub convert {
 sub run {
     my ($class, @args) = @_;
 
+    my $progname = basename $PROGRAM_NAME;
     my $help = 0;
     my $version = 0;
 
@@ -52,18 +53,18 @@ sub run {
         'version|v' => \$version,
         )
         or do {
-        print {*STDERR} "Try 'normalo --help' for more information.\n";
+        print {*STDERR} "Try '$progname --help' for more information.\n";
         return 1;
         };
 
     if ($version) {
-        print "normalo version $VERSION\n";
+        print "$progname version $VERSION\n";
         return 0;
     }
 
     if ($help) {
-        print <<'END_HELP';
-Usage: normalo [OPTIONS] FILE...
+        print <<"END_HELP";
+Usage: $progname [OPTIONS] FILE...
 
 Normalize filenames to kebab-case format.
 
@@ -72,15 +73,15 @@ Options:
   -v, --version    Display version information and exit
 
 Examples:
-  normalo "My File.txt"
-  normalo file1.txt file2.txt file3.txt
+  $progname "My File.txt"
+  $progname file1.txt file2.txt file3.txt
 END_HELP
         return 0;
     }
 
     if (!@args) {
-        print {*STDERR} "normalo: missing file operand\n";
-        print {*STDERR} "Try 'normalo --help' for more information.\n";
+        print {*STDERR} "$progname: missing file operand\n";
+        print {*STDERR} "Try '$progname --help' for more information.\n";
         return 1;
     }
 
