@@ -122,7 +122,7 @@ equivalents. Returns 0 on success, 1 on error.
 
 =head1 AUTHOR
 
-Henry Till, E<lt>ht@E<gt>
+Henry Till, E<lt>henrytill@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

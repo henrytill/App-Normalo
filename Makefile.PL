@@ -10,7 +10,7 @@ WriteMakefile(
         'Text::Unidecode' => 0,
     },
     ABSTRACT_FROM => 'lib/App/Normalo.pm',    # retrieve abstract from module
-    AUTHOR => 'Henry Till <ht@>',
+    AUTHOR => 'Henry Till <henrytill@gmail.com>',
     EXE_FILES => ['bin/normalo'],
 
     #LICENSE           => 'perl',
