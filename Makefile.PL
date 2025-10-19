@@ -25,6 +25,9 @@ WriteMakefile(
     PREREQ_PM => {
         'Text::Unidecode' => 0,
     },
+    TEST_REQUIRES => {
+        'Test::More' => 0,
+    },
     ABSTRACT_FROM => 'lib/App/Normalo.pm',    # retrieve abstract from module
     AUTHOR => 'Henry Till <henrytill@gmail.com>',
     EXE_FILES => ['bin/normalo'],
