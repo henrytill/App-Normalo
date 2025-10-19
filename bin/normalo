@@ -3,6 +3,7 @@
 use 5.040000;
 use strict;
 use warnings;
+
 use App::Normalo;
 
 our $VERSION = '0.03';
