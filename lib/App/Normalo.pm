@@ -104,6 +104,8 @@ END_HELP
 1;
 __END__
 
+=encoding UTF-8
+
 =head1 NAME
 
 App::Normalo - Normalize filenames to kebab-case
@@ -116,75 +118,44 @@ App::Normalo - Normalize filenames to kebab-case
   my $normalized = App::Normalo::convert('My File Name.txt');
   # Returns: my-file-name.txt
 
-  # Run as an application
-  App::Normalo->run(@ARGV);
-
 =head1 VERSION
 
 Version 0.02
 
 =head1 DESCRIPTION
 
-App::Normalo normalizes filenames by converting them to kebab-case format.
-It performs the following transformations:
-
-=over 4
-
-=item * Converts UTF-8 characters to ASCII equivalents (transliteration)
-
-=item * Converts to lowercase
-
-=item * Replaces spaces, underscores, dots, and control characters with hyphens
-
-=item * Removes non-alphanumeric characters (except hyphens)
-
-=item * Collapses multiple consecutive hyphens into a single hyphen
-
-=item * Preserves file extensions
-
-=back
+App::Normalo is a Perl module for normalizing filenames to kebab-case format.
+It can be used as a library or via the L<normalo> command-line tool.
 
 =head1 SUBROUTINES/METHODS
 
-=head2 convert($filename)
+=head2 convert()
+
+  my $normalized = App::Normalo::convert($filename);
 
 Converts a filename to kebab-case format and returns the normalized filename.
 Does not modify files on disk.
 
-=head2 run($class, @args)
+Takes a single argument, the filename to normalize, and returns the normalized
+filename as a string.
 
-Command-line interface. Renames files specified in @args to their kebab-case
-equivalents. Returns 0 on success, 1 on error.
+Example:
 
-=head1 COMMAND LINE USAGE
+  my $result = App::Normalo::convert('My File.txt');
+  # $result is 'my-file.txt'
 
-  normalo [OPTIONS] FILE...
+=head2 run()
 
-  Options:
-    -h, --help       Display help message and exit
-    -v, --version    Display version information and exit
+  my $exit_code = App::Normalo->run(@ARGV);
 
-  Examples:
-    normalo "My File.txt"
-    normalo file1.txt file2.txt file3.txt
+Command-line entry point. Processes command-line arguments and renames files
+to their kebab-case equivalents.
 
-=head1 DIAGNOSTICS
+Takes the class name and a list of command-line arguments (typically C<@ARGV>).
+Returns an exit code: 0 on success, 1 on error.
 
-=over 4
-
-=item C<< %s is not a regular file >>
-
-The specified path is not a regular file. Only regular files can be renamed.
-
-=item C<< Failed to rename %s to %s: %s >>
-
-The rename operation failed. The error message from the system is included.
-
-=back
-
-=head1 CONFIGURATION AND ENVIRONMENT
-
-App::Normalo requires no configuration files or environment variables.
+This method is typically not called directly. Use the L<normalo> command-line
+tool instead.
 
 =head1 DEPENDENCIES
 
@@ -226,5 +197,8 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.40.0 or,
 at your option, any later version of Perl 5 you may have available.
 
+=head1 SEE ALSO
+
+L<normalo> - Command-line interface to this module
 
 =cut

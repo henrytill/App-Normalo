@@ -7,3 +7,101 @@ use App::Normalo;
 our $VERSION = '0.02';
 
 exit App::Normalo->run(@ARGV);
+
+__END__
+
+=encoding UTF-8
+
+=head1 NAME
+
+normalo - Normalize filenames to kebab-case
+
+=head1 SYNOPSIS
+
+B<normalo> [B<-h>|B<-v>] I<FILE>...
+
+=head1 DESCRIPTION
+
+B<normalo> normalizes filenames by converting them to kebab-case format.
+It performs the following transformations:
+
+=over 4
+
+=item * Converts UTF-8 characters to ASCII equivalents (transliteration)
+
+=item * Converts to lowercase
+
+=item * Replaces spaces, underscores, dots, and control characters with hyphens
+
+=item * Removes non-alphanumeric characters (except hyphens)
+
+=item * Collapses multiple consecutive hyphens into a single hyphen
+
+=item * Preserves file extensions
+
+=back
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-h>, B<--help>
+
+Display help message and exit.
+
+=item B<-v>, B<--version>
+
+Display version information and exit.
+
+=back
+
+=head1 EXAMPLES
+
+  normalo "My File.txt"
+  # Renames to: my-file.txt
+
+  normalo file1.txt file2.txt file3.txt
+  # Renames multiple files
+
+  normalo "Café_2024 (Final).PDF"
+  # Renames to: cafe-2024-final.pdf
+
+=head1 DIAGNOSTICS
+
+=over 4
+
+=item C<< %s is not a regular file >>
+
+The specified path is not a regular file. Only regular files can be renamed.
+
+=item C<< Failed to rename %s to %s: %s >>
+
+The rename operation failed. The error message from the system is included.
+
+=item C<< missing file operand >>
+
+No files were specified on the command line.
+
+=back
+
+=head1 EXIT STATUS
+
+The B<normalo> utility exits 0 on success, and 1 if an error occurs.
+
+=head1 AUTHOR
+
+Henry Till, E<lt>henrytill@gmail.comE<gt>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (C) 2025 by Henry Till
+
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.40.0 or,
+at your option, any later version of Perl 5 you may have available.
+
+=head1 SEE ALSO
+
+L<App::Normalo>
+
+=cut
