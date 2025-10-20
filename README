@@ -1,16 +1,12 @@
-App-Normalo version 0.01
+App-Normalo version 0.03
 ========================
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+App::Normalo normalizes filenames to kebab-case format. It converts
+spaces, underscores, and other separators to hyphens, lowercases all
+characters, transliterates UTF-8 to ASCII, and removes special characters.
 
-A README file is required for CPAN modules since CPAN extracts the
-README file from a module distribution so that people browsing the
-archive can use it get an idea of the modules uses. It is usually a
-good idea to provide version information here so that people can
-decide whether fixes for the module are worth downloading.
+The module can be used as a library (App::Normalo::convert) or via the
+normalo command-line tool to rename files in batch.
 
 INSTALLATION
 
@@ -25,16 +21,12 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  blah blah blah
+  Text::Unidecode
 
 COPYRIGHT AND LICENCE
-
-Put the correct copyright and licence information here.
 
 Copyright (C) 2025 by Henry Till
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.40.0 or,
 at your option, any later version of Perl 5 you may have available.
-
-
