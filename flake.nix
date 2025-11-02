@@ -16,10 +16,7 @@
             AppNormalo = perlFinal.buildPerlPackage {
               pname = "App-Normalo";
               version = "0.03";
-              src = builtins.path {
-                path = ./.;
-                name = "App-Normalo-src";
-              };
+              src = self;
               propagatedBuildInputs = with perlFinal; [ TextUnidecode ];
             };
           }
