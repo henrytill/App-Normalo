@@ -69,7 +69,7 @@ subtest 'unknown option' => sub {
 };
 
 subtest 'missing file operand' => sub {
-    my ($code, $out, $err) = run_normalo();
+    my ($code, undef, $err) = run_normalo();
     is($code, 1, 'exits 1');
     like($err, qr/\Anormalo:\ missing\ file\ operand$/smx, 'reports missing operand');
 };
@@ -112,7 +112,7 @@ subtest 'directory is rejected' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my $sub = catfile($dir, 'Sub Dir');
     mkdir $sub or die "Cannot create $sub: $!";
-    my ($code, $out, $err) = run_normalo($sub);
+    my ($code, undef, $err) = run_normalo($sub);
     is($code, 1, 'exits 1');
     like($err, qr/is\ not\ a\ regular\ file/smx, 'reports non-regular file');
     is_deeply(entries($dir), ['Sub Dir'], 'directory not renamed');
@@ -120,7 +120,7 @@ subtest 'directory is rejected' => sub {
 
 subtest 'missing file is rejected' => sub {
     my $dir = tempdir(CLEANUP => 1);
-    my ($code, $out, $err) = run_normalo(catfile($dir, 'No Such File.txt'));
+    my ($code, undef, $err) = run_normalo(catfile($dir, 'No Such File.txt'));
     is($code, 1, 'exits 1');
     like($err, qr/is\ not\ a\ regular\ file/smx, 'reports non-regular file');
 };
@@ -129,7 +129,7 @@ subtest 'existing target is not clobbered' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my $path = touch($dir, 'My File.txt');
     touch($dir, 'my-file.txt');
-    my ($code, $out, $err) = run_normalo($path);
+    my ($code, undef, $err) = run_normalo($path);
     is($code, 1, 'exits 1');
     like($err, qr/target\ already\ exists/smx, 'reports collision');
     is_deeply(entries($dir), [ 'My File.txt', 'my-file.txt' ], 'neither file renamed');
@@ -167,8 +167,8 @@ subtest 'failed rename (#8)' => sub {
     my $path = touch($dir, 'My File.txt');
     chmod 0555, $dir or die "Cannot chmod $dir: $!";
 
-    my ($code, $out, $err);
-    my $died = !eval { ($code, $out, $err) = run_normalo($path); 1 };
+    my $code;
+    my $died = !eval { ($code) = run_normalo($path); 1 };
     chmod 0755, $dir or die "Cannot chmod $dir: $!";
 
     is_deeply(entries($dir), ['My File.txt'], 'file not renamed');
