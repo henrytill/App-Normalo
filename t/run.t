@@ -160,6 +160,19 @@ subtest 'dangling symlink at the target is not clobbered (#10)' => sub {
     ok(-e $path, 'file not renamed');
 };
 
+subtest 'case-only rename where the target is the same file (#2)' => sub {
+
+    # A case-insensitive filesystem reports the source itself at the target;
+    # two hard links whose names differ only in case look the same
+    my $dir = tempdir(CLEANUP => 1);
+    my $path = touch($dir, 'File.txt');
+    link $path, catfile($dir, 'file.txt') or plan skip_all => "hard links not supported: $!";
+    my ($code, $out, $err) = run_normalo($path);
+    is($code, 0, 'exits 0');
+    is($out . $err, q{}, 'prints nothing');
+    is_deeply(entries($dir), ['file.txt'], 'renamed to the lowercase name');
+};
+
 subtest 'symlink is renamed, not its target' => sub {
     plan skip_all => 'symlinks not supported' if !eval { symlink q{}, q{}; 1 };
     my $dir = tempdir(CLEANUP => 1);
