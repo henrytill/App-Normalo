@@ -56,4 +56,10 @@ is(App::Normalo::convert('Résumé.Café'), 'resume.cafe',
 is(App::Normalo::convert('foo.T x_t-!'), 'foo.txt',
     'Spaces, separators, and special characters removed from extension');
 
+is(App::Normalo::convert('Foo.!!'), 'foo',
+    'Extension with nothing left after normalization dropped');
+
+is(App::Normalo::convert('.!!'), '.!!',
+    'Name with nothing left after normalization unchanged');
+
 done_testing();
