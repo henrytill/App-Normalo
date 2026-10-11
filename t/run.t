@@ -115,7 +115,7 @@ subtest 'directory is rejected' => sub {
     mkdir $sub or die "Cannot create $sub: $!";
     my ($code, undef, $err) = run_normalo($sub);
     is($code, 1, 'exits 1');
-    like($err, qr/is\ not\ a\ regular\ file/smx, 'reports non-regular file');
+    like($err, qr/\Anormalo:\ .*\ is\ not\ a\ regular\ file$/smx, 'reports non-regular file');
     is_deeply(entries($dir), ['Sub Dir'], 'directory not renamed');
 };
 
@@ -123,7 +123,7 @@ subtest 'missing file is rejected' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my ($code, undef, $err) = run_normalo(catfile($dir, 'No Such File.txt'));
     is($code, 1, 'exits 1');
-    like($err, qr/is\ not\ a\ regular\ file/smx, 'reports non-regular file');
+    like($err, qr/\Anormalo:\ .*\ is\ not\ a\ regular\ file$/smx, 'reports non-regular file');
 };
 
 subtest 'existing target is not clobbered' => sub {
@@ -132,7 +132,7 @@ subtest 'existing target is not clobbered' => sub {
     touch($dir, 'my-file.txt');
     my ($code, undef, $err) = run_normalo($path);
     is($code, 1, 'exits 1');
-    like($err, qr/target\ already\ exists/smx, 'reports collision');
+    like($err, qr/\Anormalo:\ cannot\ rename\ .*:\ target\ already\ exists$/smx, 'reports collision');
     is_deeply(entries($dir), [ 'My File.txt', 'my-file.txt' ], 'neither file renamed');
 };
 
@@ -152,14 +152,15 @@ subtest 'failure partway through a batch (#1)' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my @paths = map { touch($dir, $_) } ('One File.txt', 'Two File.txt', 'Three File.txt');
     touch($dir, 'two-file.txt');
-    my ($code) = run_normalo(@paths);
+    my $missing = catfile($dir, 'No Such File.txt');
+    my ($code, undef, $err) = run_normalo($paths[0], $missing, @paths[ 1, 2 ]);
     is($code, 1, 'exits 1');
-
-TODO: {
-        local $TODO = 'run() stops at the first failure (#1)';
-        is_deeply(entries($dir), [ 'Two File.txt', 'one-file.txt', 'three-file.txt', 'two-file.txt' ],
-            'files after the failure are still renamed');
-    }
+    is_deeply(entries($dir), [ 'Two File.txt', 'one-file.txt', 'three-file.txt', 'two-file.txt' ],
+        'files after the failures are still renamed');
+    my @lines = split /\n/smx, $err;
+    is(scalar @lines, 2, 'reports each failure once');
+    like($lines[0], qr/is\ not\ a\ regular\ file$/smx, 'reports the missing file');
+    like($lines[1], qr/target\ already\ exists$/smx, 'reports the collision');
 };
 
 subtest 'failed rename (#8)' => sub {
@@ -168,17 +169,14 @@ subtest 'failed rename (#8)' => sub {
     my $path = touch($dir, 'My File.txt');
     chmod 0555, $dir or die "Cannot chmod $dir: $!";
 
-    my $code;
-    my $died = !eval { ($code) = run_normalo($path); 1 };
+    my ($code, $err);
+    my $died = !eval { ($code, undef, $err) = run_normalo($path); 1 };
     chmod 0755, $dir or die "Cannot chmod $dir: $!";
 
     is_deeply(entries($dir), ['My File.txt'], 'file not renamed');
-
-TODO: {
-        local $TODO = 'run() dies instead of returning 1 (#8)';
-        ok(!$died, 'does not die');
-        is($code, 1, 'exits 1');
-    }
+    ok(!$died, 'does not die');
+    is($code, 1, 'exits 1');
+    like($err, qr/\Anormalo:\ failed\ to\ rename\ .*:\ .+$/smx, 'reports the failure');
 };
 
 done_testing();

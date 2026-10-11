@@ -1,6 +1,10 @@
 Revision history for Perl extension App::Normalo.
 
-0.05  (unreleased)
+0.05  Sun Oct 11 13:56:12 2026
+	- Keep going after a path that can't be renamed, report it, and exit 1
+	  at the end, instead of stopping at the first failure (#1)
+	- Report a failed rename and exit 1 instead of dying with errno as the
+	  exit status, and prefix every error message with the program name (#8)
 	- Point the POD's BUGS AND LIMITATIONS section at the GitHub issue
 	  tracker, and add bugtracker and repository links to the distribution
 	  metadata (#16)

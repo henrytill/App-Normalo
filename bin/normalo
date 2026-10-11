@@ -6,7 +6,7 @@ use warnings;
 
 use App::Normalo;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 exit App::Normalo->run(@ARGV);
 
@@ -70,17 +70,20 @@ Display version information and exit.
 
 =head1 DIAGNOSTICS
 
+Each message is prefixed with C<normalo:>. When a path can't be renamed,
+B<normalo> reports it and goes on to the remaining paths.
+
 =over 4
 
 =item C<< %s is not a regular file >>
 
 The specified path is not a regular file. Only regular files can be renamed.
 
-=item C<< Cannot rename %s to %s: target already exists >>
+=item C<< cannot rename %s to %s: target already exists >>
 
 The target filename already exists. B<normalo> will not overwrite existing files.
 
-=item C<< Failed to rename %s to %s: %s >>
+=item C<< failed to rename %s to %s: %s >>
 
 The rename operation failed. The error message from the system is included.
 
@@ -92,7 +95,8 @@ No files were specified on the command line.
 
 =head1 EXIT STATUS
 
-The B<normalo> utility exits 0 on success, and 1 if an error occurs.
+The B<normalo> utility exits 0 on success, and 1 if an error occurs, including when any of the
+given files could not be renamed.
 
 =head1 AUTHOR
 
