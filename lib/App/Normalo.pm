@@ -59,6 +59,27 @@ sub convert {
     return $converted ne q{} ? $converted : $filename;
 }
 
+# Rename $path to its normalized name. Return undef on success, or a message
+# saying why it couldn't be renamed.
+sub rename_path {
+    my ($path) = @_;
+
+    return "$path is not a regular file" if !-f $path;
+
+    my $filename = basename $path;
+    my $kebab_filename = convert $filename;
+
+    return if $kebab_filename eq $filename;
+
+    my $new_path = catfile(dirname($path), $kebab_filename);
+
+    return "cannot rename $path to $new_path: target already exists" if -e $new_path;
+
+    rename $path, $new_path or return "failed to rename $path to $new_path: $OS_ERROR";
+
+    return;
+}
+
 sub run {
     my ($class, @args) = @_;
 
@@ -116,30 +137,9 @@ END_HELP
     my $status = 0;
 
     foreach my $path (@args) {
-        if (!-f $path) {
-            print {$err} "$progname: $path is not a regular file\n";
-            $status = 1;
-            next;
-        }
-
-        my $filename = basename $path;
-        my $dir = dirname $path;
-        my $kebab_filename = convert $filename;
-
-        next if $kebab_filename eq $filename;
-
-        my $new_path = catfile($dir, $kebab_filename);
-
-        if (-e $new_path) {
-            print {$err} "$progname: cannot rename $path to $new_path: target already exists\n";
-            $status = 1;
-            next;
-        }
-
-        if (!rename $path, $new_path) {
-            print {$err} "$progname: failed to rename $path to $new_path: $OS_ERROR\n";
-            $status = 1;
-        }
+        my $error = rename_path($path) // next;
+        print {$err} "$progname: $error\n";
+        $status = 1;
     }
 
     return $status;
