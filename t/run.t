@@ -160,17 +160,27 @@ subtest 'dangling symlink at the target is not clobbered (#10)' => sub {
     ok(-e $path, 'file not renamed');
 };
 
-subtest 'case-only rename where the target is the same file (#2)' => sub {
+subtest 'hard link at the target differing only in case is kept (#2)' => sub {
 
-    # A case-insensitive filesystem reports the source itself at the target;
-    # two hard links whose names differ only in case look the same
+    # On a case-sensitive filesystem these are two names for one file, which
+    # looks like a case-insensitive filesystem until the first step
     my $dir = tempdir(CLEANUP => 1);
     my $path = touch($dir, 'File.txt');
     link $path, catfile($dir, 'file.txt') or plan skip_all => "hard links not supported: $!";
-    my ($code, $out, $err) = run_normalo($path);
-    is($code, 0, 'exits 0');
-    is($out . $err, q{}, 'prints nothing');
-    is_deeply(entries($dir), ['file.txt'], 'renamed to the lowercase name');
+    my ($code, undef, $err) = run_normalo($path);
+    is($code, 1, 'exits 1');
+    like($err, qr/\Anormalo:\ cannot\ rename\ .*:\ target\ already\ exists$/smx, 'reports collision');
+    is_deeply(entries($dir), [ 'File.txt', 'file.txt' ], 'both names kept, no temporary name left');
+};
+
+subtest 'hard link at the normalized name is kept' => sub {
+    my $dir = tempdir(CLEANUP => 1);
+    my $path = touch($dir, 'My File.txt');
+    link $path, catfile($dir, 'my-file.txt') or plan skip_all => "hard links not supported: $!";
+    my ($code, undef, $err) = run_normalo($path);
+    is($code, 1, 'exits 1');
+    like($err, qr/target\ already\ exists$/smx, 'reports collision');
+    is_deeply(entries($dir), [ 'My File.txt', 'my-file.txt' ], 'both names kept');
 };
 
 subtest 'symlink is renamed, not its target' => sub {

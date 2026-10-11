@@ -29,6 +29,15 @@ sub write_file {
     return $path;
 }
 
+# Return the sorted names of the entries in $dir.
+sub entries {
+    my ($dir) = @_;
+    opendir my $dh, $dir or die "Cannot open $dir: $!";
+    my @names = sort grep { !/\A[.][.]?\z/smx } readdir $dh;
+    closedir $dh or die "Cannot close $dir: $!";
+    return \@names;
+}
+
 # Return the contents of the file at $path.
 sub slurp {
     my ($path) = @_;
@@ -101,7 +110,7 @@ subtest 'dangling symlink at the target is not clobbered without hard links (#10
     is(slurp($path), 'source', 'source left in place');
 };
 
-subtest 'case-only rename without hard links (#2)' => sub {
+subtest 'hard link differing only in case is kept without link() (#2)' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my $path = write_file($dir, 'File.txt', 'source');
     CORE::link($path, catfile($dir, 'file.txt')) or plan skip_all => "hard links not supported: $!";
@@ -110,9 +119,8 @@ subtest 'case-only rename without hard links (#2)' => sub {
         return 0;
     };
 
-    is(App::Normalo::rename_path($path), undef, 'succeeds');
-    ok(!-e $path, 'old name gone');
-    is(slurp(catfile($dir, 'file.txt')), 'source', 'renamed');
+    like(App::Normalo::rename_path($path), qr/target\ already\ exists$/smx, 'reports collision');
+    is_deeply(entries($dir), [ 'File.txt', 'file.txt' ], 'both names kept, no temporary name left');
 };
 
 subtest 'case-only rename through a temporary name (#2)' => sub {
