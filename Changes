@@ -7,6 +7,9 @@ Revision history for Perl extension App::Normalo.
 	  copy, flake.nix reads it from the module, README drops its stale
 	  0.03, and a test checks that the POD's VERSION section matches it
 	  (#13)
+	- Run perlcritic and perltidy in CI, as a lint check in the flake's
+	  checks output alongside the build, and have CI run nix flake check
+	  (#13)
 
 0.07  Sun Oct 11 14:04:37 2026
 	- Leave a file unchanged if nothing of its stem survives normalization,
