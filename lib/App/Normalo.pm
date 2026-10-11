@@ -137,7 +137,8 @@ sub same_file {
 sub rename_case {
     my ($path, $new_path) = @_;
 
-    my $tmp = "$new_path.normalo-$PID";
+    # Keep the temporary name short, so that it fits wherever $new_path does
+    my $tmp = catfile(dirname($new_path), ".normalo-$PID");
     my $error = rename_noreplace($path, $tmp);
     return $error if defined $error;
 
