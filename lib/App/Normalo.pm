@@ -15,15 +15,13 @@ our $VERSION = '0.04';
 
 # Preloaded methods go here.
 
-sub convert {
-    my ($filename) = @_;
-
-    # Split filename into stem and extension, decoding first so that the
-    # extension is split on characters rather than bytes
-    my ($stem, undef, $extension) = fileparse(decode('UTF-8', $filename), qr/ [.] [^.]* /smx);
+# Transliterate $text to ASCII and reduce it to lowercase alphanumerics
+# separated by single hyphens.
+sub kebab {
+    my ($text) = @_;
 
     # Convert to ASCII with transliteration
-    my $converted = unidecode $stem;
+    my $converted = unidecode $text;
 
     # Convert to lowercase
     $converted = lc $converted;
@@ -38,12 +36,21 @@ sub convert {
     # Replace multiple consecutive hyphens with single hyphen
     $converted =~ s{ -+ }{-}smxg;
 
+    return $converted;
+}
+
+sub convert {
+    my ($filename) = @_;
+
+    # Split filename into stem and extension, decoding first so that the
+    # extension is split on characters rather than bytes
+    my ($stem, undef, $extension) = fileparse(decode('UTF-8', $filename), qr/ [.] [^.]* /smx);
+
+    my $converted = kebab $stem;
     return $converted if !$extension;
 
-    # Normalize the extension the same way, but drop separators instead of
-    # turning them into hyphens
-    my $ext = lc unidecode substr $extension, 1;
-    $ext =~ s{ [^[:alnum:]] }{}smxg;
+    # Normalize the extension the same way, but without the hyphens
+    (my $ext = kebab substr $extension, 1) =~ tr/-//d;
 
     return "$converted.$ext";
 }
