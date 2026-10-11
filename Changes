@@ -1,5 +1,9 @@
 Revision history for Perl extension App::Normalo.
 
+0.06  Sun Oct 11 14:03:47 2026
+	- Trim hyphens from the start and end of the name, so that `-Dash.txt`
+	  becomes `dash.txt` rather than a name that looks like an option (#4)
+
 0.05  Sun Oct 11 13:56:12 2026
 	- Keep going after a path that can't be renamed, report it, and exit 1
 	  at the end, instead of stopping at the first failure (#1)
