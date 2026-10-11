@@ -53,10 +53,7 @@ is(App::Normalo::convert('foo.TXTÉ'), 'foo.txte',
 is(App::Normalo::convert('Résumé.Café'), 'resume.cafe',
     'Non-ASCII stem and extension transliterated');
 
-is(App::Normalo::convert('foo.T XT'), 'foo.txt',
-    'Spaces removed from extension');
-
-is(App::Normalo::convert('foo.t_x-t!'), 'foo.txt',
-    'Separators and special characters removed from extension');
+is(App::Normalo::convert('foo.T x_t-!'), 'foo.txt',
+    'Spaces, separators, and special characters removed from extension');
 
 done_testing();
