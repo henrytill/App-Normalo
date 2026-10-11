@@ -1,6 +1,9 @@
 Revision history for Perl extension App::Normalo.
 
-0.08  (unreleased)
+0.08  Sun Oct 11 14:27:39 2026
+	- Leave a file whose name isn't valid UTF-8 alone and report it, instead
+	  of silently dropping its non-ASCII bytes; convert() now dies on such
+	  a name (#7)
 	- Declare the license (perl_5) and the minimum Perl version (5.40) in
 	  the distribution metadata (#12)
 	- Keep the version number only in the module's $VERSION: drop the

@@ -4,14 +4,14 @@ use 5.040000;
 use strict;
 use warnings;
 
-use Encode qw(decode);
+use Encode qw(decode FB_CROAK LEAVE_SRC);
 use English qw(-no_match_vars);
 use File::Basename qw(basename dirname fileparse);
 use File::Spec::Functions qw(catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 # Preloaded methods go here.
 
@@ -46,9 +46,15 @@ sub kebab {
 sub convert {
     my ($filename) = @_;
 
+    # Refuse to guess at a name in some other encoding: decoding it
+    # leniently would turn its non-ASCII bytes into U+FFFD, which kebab
+    # then strips without a trace
+    my $decoded = eval { decode('UTF-8', $filename, FB_CROAK | LEAVE_SRC) };
+    die "name is not valid UTF-8\n" if !defined $decoded;
+
     # Split filename into stem and extension, decoding first so that the
     # extension is split on characters rather than bytes
-    my ($stem, undef, $extension) = fileparse(decode('UTF-8', $filename), qr/ [.] [^.]* /smx);
+    my ($stem, undef, $extension) = fileparse($decoded, qr/ [.] [^.]* /smx);
 
     my $converted = kebab $stem;
 
@@ -76,7 +82,12 @@ sub rename_path {
     return "$path is not a regular file" if !-f $path;
 
     my $filename = basename $path;
-    my $kebab_filename = convert $filename;
+    my $kebab_filename = eval { convert $filename };
+
+    if (!defined $kebab_filename) {
+        chomp(my $error = $EVAL_ERROR);
+        return "cannot rename $path: $error";
+    }
 
     return if $kebab_filename eq $filename;
 
@@ -193,7 +204,9 @@ Converts a filename to kebab-case format and returns the normalized filename.
 Does not modify files on disk.
 
 Takes a single argument, the filename to normalize, and returns the normalized
-filename as a string.
+filename as a string. The filename is a byte string, as returned by C<readdir>
+or found in C<@ARGV>, and must be valid UTF-8: C<convert()> dies with
+C<"name is not valid UTF-8\n"> rather than guess at another encoding.
 
 Example:
 

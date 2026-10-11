@@ -136,6 +136,17 @@ subtest 'existing target is not clobbered' => sub {
     is_deeply(entries($dir), [ 'My File.txt', 'my-file.txt' ], 'neither file renamed');
 };
 
+subtest 'name that is not valid UTF-8 (#7)' => sub {
+    my $dir = tempdir(CLEANUP => 1);
+    my $path = eval { touch($dir, "\xe9t\xe9 File.txt") };
+    plan skip_all => 'filesystem rejects non-UTF-8 names' if !defined $path;
+    my $other = touch($dir, 'Other File.txt');
+    my ($code, undef, $err) = run_normalo($path, $other);
+    is($code, 1, 'exits 1');
+    like($err, qr/\Anormalo:\ cannot\ rename\ .*:\ name\ is\ not\ valid\ UTF-8$/smx, 'reports the name');
+    is_deeply(entries($dir), [ 'other-file.txt', "\xe9t\xe9 File.txt" ], 'file left alone, others renamed');
+};
+
 subtest 'symlink is renamed, not its target' => sub {
     plan skip_all => 'symlinks not supported' if !eval { symlink q{}, q{}; 1 };
     my $dir = tempdir(CLEANUP => 1);
