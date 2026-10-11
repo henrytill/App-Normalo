@@ -11,7 +11,7 @@ use File::Spec::Functions qw(catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 # Preloaded methods go here.
 
@@ -102,8 +102,23 @@ sub rename_path {
     return if $kebab_filename eq $filename;
 
     my $new_path = catfile(dirname($path), $kebab_filename);
+    my $exists = "cannot rename $path to $new_path: target already exists";
 
-    return "cannot rename $path to $new_path: target already exists" if -e $new_path;
+    # rename(2) silently replaces an existing target, so a file created at
+    # $new_path after a -e check would be lost. link(2) fails if the target
+    # exists, so link the new name and then unlink the old one. Skip it for
+    # symlinks, since some systems' link(2) follows them.
+    if (!-l $path) {
+        if (link $path, $new_path) {
+            unlink $path or return "failed to remove $path after linking it to $new_path: $OS_ERROR";
+            return;
+        }
+        return $exists if $OS_ERROR{EEXIST};
+    }
+
+    # Otherwise (a symlink, or a filesystem without hard links) check and
+    # rename, which leaves a small window for a race
+    return $exists if -e $new_path;
 
     rename $path, $new_path or return "failed to rename $path to $new_path: $OS_ERROR";
 
