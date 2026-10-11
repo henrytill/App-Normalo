@@ -1,6 +1,9 @@
 Revision history for Perl extension App::Normalo.
 
-0.04  (unreleased)
+0.04  Sat Oct 10 19:04:01 2026
+	- Normalize file extensions like the rest of the name: decode them as UTF-8,
+	  transliterate to ASCII, and drop anything that is not alphanumeric. This
+	  stops non-ASCII extensions from being lowercased into invalid UTF-8 (#6)
 	- Add tests for run()
 
 0.03  Sat Oct 18 21:46:22 2025
