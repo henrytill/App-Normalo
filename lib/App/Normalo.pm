@@ -65,8 +65,6 @@ sub run {
     return main(\@args, progname => basename($PROGRAM_NAME), out => \*STDOUT, err => \*STDERR);
 }
 
-# Do the work of run(), naming the program $env{progname} in messages and
-# writing only to the $env{out} and $env{err} filehandles.
 sub main {
     my ($args, %env) = @_;
 
