@@ -85,4 +85,20 @@ subtest 'target created before a symlink is moved is not clobbered (#10)' => sub
     ok(-l $path, 'symlink left in place');
 };
 
+subtest 'dangling symlink at the target is not clobbered without hard links (#10)' => sub {
+    plan skip_all => 'symlinks not supported' if !eval { CORE::symlink(q{}, q{}); 1 };
+    my $dir = tempdir(CLEANUP => 1);
+    my $path = write_file($dir, 'My File.txt', 'source');
+    my $target = catfile($dir, 'my-file.txt');
+    CORE::symlink('nowhere', $target) or die "Cannot create $target: $!";
+    local $link_hook = sub {
+        $! = EPERM;    ## no critic (Variables::RequireLocalizedPunctuationVars)
+        return 0;
+    };
+
+    like(App::Normalo::rename_path($path), qr/target\ already\ exists$/smx, 'reports collision');
+    ok(-l $target, 'symlink left in place');
+    is(slurp($path), 'source', 'source left in place');
+};
+
 done_testing();
