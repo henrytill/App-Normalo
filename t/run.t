@@ -149,14 +149,14 @@ subtest 'symlink is renamed, not its target' => sub {
 
 subtest 'failure partway through a batch (#1)' => sub {
     my $dir = tempdir(CLEANUP => 1);
-    my @paths = map { touch($dir, $_) } ('One.txt', 'X.txt', 'Three.txt');
-    touch($dir, 'x.txt');
+    my @paths = map { touch($dir, $_) } ('One File.txt', 'Two File.txt', 'Three File.txt');
+    touch($dir, 'two-file.txt');
     my ($code) = run_normalo(@paths);
     is($code, 1, 'exits 1');
 
 TODO: {
         local $TODO = 'run() stops at the first failure (#1)';
-        is_deeply(entries($dir), [ 'X.txt', 'one.txt', 'three.txt', 'x.txt' ],
+        is_deeply(entries($dir), [ 'Two File.txt', 'one-file.txt', 'three-file.txt', 'two-file.txt' ],
             'files after the failure are still renamed');
     }
 };
