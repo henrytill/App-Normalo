@@ -1,5 +1,11 @@
 Revision history for Perl extension App::Normalo.
 
+0.12  Sun Oct 11 16:33:55 2026
+	- Normalize dotfile names after the leading dot, so `.Hidden File`
+	  becomes `.hidden-file` rather than `.hiddenfile`, and keep compound
+	  extensions such as `.tar.gz` together, so `file.tar.gz` stays
+	  `file.tar.gz` rather than becoming `file-tar.gz` (#9)
+
 0.11  Sun Oct 11 16:30:03 2026
 	- Add -n/--dry-run, which prints `old -> new` for each file that would
 	  be renamed without renaming anything, and still reports files that

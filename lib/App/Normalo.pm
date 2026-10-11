@@ -6,12 +6,16 @@ use warnings;
 
 use Encode qw(decode FB_CROAK LEAVE_SRC);
 use English qw(-no_match_vars);
-use File::Basename qw(basename dirname fileparse);
+use File::Basename qw(basename dirname);
 use File::Spec::Functions qw(canonpath catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
+
+# A component before the last extension that still counts as part of the
+# extension, like the "tar" in .tar.gz
+my $COMPOUND_EXTENSION = qr/ \A [[:alpha:]]{1,3} \z /smx;
 
 # Preloaded methods go here.
 
@@ -65,28 +69,32 @@ sub decode_name {
 sub convert {
     my ($filename) = @_;
 
-    my $decoded = decode_name($filename);
+    # Split the decoded name, so that it's split on characters rather than
+    # bytes. A leading dot marks a dotfile: keep it, and treat the rest as
+    # the name.
+    my $rest = decode_name($filename);
+    my $prefix = $rest =~ s{ \A [.] }{}smx ? q{.} : q{};
 
-    # Split the decoded name, so that the extension is split on characters
-    # rather than bytes
-    my ($stem, undef, $extension) = fileparse($decoded, qr/ [.] [^.]* /smx);
+    # Everything after the last dot is the extension, along with any short,
+    # all-letter components before it, as in .tar.gz
+    my @parts = split / [.] /smx, $rest, -1;
+    my @extensions = @parts > 1 ? pop @parts : ();
+    unshift @extensions, pop @parts while @parts > 1 && $parts[-1] =~ $COMPOUND_EXTENSION;
 
-    my $converted = kebab $stem;
+    my $converted = kebab join q{.}, @parts;
 
-    # Leave the name alone if its stem normalizes to nothing, rather than
-    # hide the file behind its extension. A dotfile's stem is already empty.
-    return $filename if $stem ne q{} && $converted eq q{};
+    # Leave the name alone rather than reduce it to nothing, or to an
+    # extension that would hide the file
+    return $filename if $converted eq q{};
 
-    # Normalize the extension the same way, but without the hyphens, and
-    # drop it if nothing is left
-    if ($extension) {
-        (my $ext = kebab substr $extension, 1) =~ tr/-//d;
+    # Normalize each extension the same way, but without the hyphens, and
+    # drop any that are left empty
+    foreach my $extension (@extensions) {
+        (my $ext = kebab $extension) =~ tr/-//d;
         $converted .= ".$ext" if $ext ne q{};
     }
 
-    # Only a dotfile whose extension normalizes to nothing can get here empty.
-    # Once #9 parses dotfiles with a stem, the check above covers this too.
-    return $converted ne q{} ? $converted : $filename;
+    return $prefix . $converted;
 }
 
 # Return the message for a rename from $from to $to that something is already
@@ -316,7 +324,10 @@ Converts a filename to kebab-case format and returns the normalized filename.
 Does not modify files on disk.
 
 Takes a single argument, the filename to normalize, and returns the normalized
-filename as a string. The filename is a byte string, as returned by C<readdir>
+filename as a string. A leading dot is kept, and the rest of a dotfile's name is
+normalized like any other. Everything after the last dot is the extension,
+together with any components of one to three letters before it, so
+C<Backup.TAR.GZ> becomes C<backup.tar.gz>. The filename is a byte string, as returned by C<readdir>
 or found in C<@ARGV>, and must be valid UTF-8: C<convert()> dies with
 C<"name is not valid UTF-8\n"> rather than guess at another encoding. It also
 dies, with C<"name contains a Unicode noncharacter\n">, on a name containing a
