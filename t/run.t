@@ -7,21 +7,15 @@ use File::Spec::Functions qw(catfile);
 use File::Temp qw(tempdir);
 use Test::More;
 
-local $0 = 'normalo';
-
-# Call App::Normalo->run with @args, capturing its exit code and output.
+# Call App::Normalo::main with @args, capturing its exit code and output.
 sub run_normalo {
     my (@args) = @_;
     my ($out, $err) = (q{}, q{});
-    open my $out_fh, '>', \$out or die "Cannot capture STDOUT: $!";
-    open my $err_fh, '>', \$err or die "Cannot capture STDERR: $!";
-    my $code = do {
-        local *STDOUT = $out_fh;
-        local *STDERR = $err_fh;
-        App::Normalo->run(@args);
-    };
-    close $out_fh or die "Cannot close STDOUT capture: $!";
-    close $err_fh or die "Cannot close STDERR capture: $!";
+    open my $out_fh, '>', \$out or die "Cannot capture output: $!";
+    open my $err_fh, '>', \$err or die "Cannot capture errors: $!";
+    my $code = App::Normalo::main(\@args, progname => 'normalo', out => $out_fh, err => $err_fh);
+    close $out_fh or die "Cannot close output capture: $!";
+    close $err_fh or die "Cannot close error capture: $!";
     return ($code, $out, $err);
 }
 
@@ -59,6 +53,12 @@ subtest '--version' => sub {
         is($out, "normalo version $App::Normalo::VERSION\n", "$opt prints version");
         is($err, q{}, "$opt prints nothing to STDERR");
     }
+};
+
+subtest 'bin/normalo uses the script name and STDOUT' => sub {
+    my $out = qx{"$^X" -Ilib bin/normalo --version};
+    is($?, 0, 'exits 0');
+    is($out, "normalo version $App::Normalo::VERSION\n", 'prints version');
 };
 
 subtest 'unknown option' => sub {
