@@ -4,5 +4,6 @@ MANIFEST
 README
 bin/normalo
 t/App-Normalo.t
+t/link.t
 t/run.t
 lib/App/Normalo.pm

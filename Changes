@@ -1,5 +1,11 @@
 Revision history for Perl extension App::Normalo.
 
+0.09  Sun Oct 11 15:12:37 2026
+	- Rename by linking the new name and then unlinking the old one, so a
+	  file that appears at the target after the check is never replaced.
+	  Symlinks and filesystems without hard links still check and rename
+	  (#10)
+
 0.08  Sun Oct 11 14:27:39 2026
 	- Leave a file whose name isn't valid UTF-8, or contains a Unicode
 	  noncharacter, alone and report why, instead of silently dropping
