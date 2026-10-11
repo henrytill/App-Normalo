@@ -1,5 +1,9 @@
 Revision history for Perl extension App::Normalo.
 
+0.08  (unreleased)
+	- Declare the license (perl_5) and the minimum Perl version (5.40) in
+	  the distribution metadata (#12)
+
 0.07  Sun Oct 11 14:04:37 2026
 	- Leave a file unchanged if nothing of its stem survives normalization,
 	  rather than renaming `!!!.txt` to the hidden `.txt` (#3)

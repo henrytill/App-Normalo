@@ -30,6 +30,8 @@ WriteMakefile(
     },
     ABSTRACT_FROM => 'lib/App/Normalo.pm',    # retrieve abstract from module
     AUTHOR => 'Henry Till <henrytill@gmail.com>',
+    LICENSE => 'perl_5',
+    MIN_PERL_VERSION => '5.040000',
     EXE_FILES => ['bin/normalo'],
     META_MERGE => {
         'meta-spec' => { version => 2 },
@@ -42,10 +44,6 @@ WriteMakefile(
             },
         },
     },
-
-    #LICENSE           => 'perl',
-    #Value must be from legacy list of licenses here
-    #https://metacpan.org/pod/Module::Build::API
 );
 
 sub MY::postamble {
