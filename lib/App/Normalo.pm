@@ -89,6 +89,28 @@ sub convert {
     return $converted ne q{} ? $converted : $filename;
 }
 
+# Rename $from to $to without replacing anything already at $to. Return undef
+# on success, or a message saying why it couldn't be renamed.
+sub rename_noreplace {
+    my ($from, $to) = @_;
+
+    # rename(2) silently replaces an existing target, but link(2) fails if the
+    # target exists, so link the new name and then unlink the old one. Skip
+    # it for symlinks, since some systems' link(2) follows them.
+    if (!-l $from && link $from, $to) {
+        unlink $from or return "failed to remove $from after linking it to $to: $OS_ERROR";
+        return;
+    }
+
+    # Either the target exists, or this is a symlink or a filesystem without
+    # hard links, where checking and then renaming leaves a small race
+    return "cannot rename $from to $to: target already exists" if -e $to;
+
+    rename $from, $to or return "failed to rename $from to $to: $OS_ERROR";
+
+    return;
+}
+
 # Rename $path to its normalized name. Return undef on success, or a message
 # saying why it couldn't be renamed.
 sub rename_path {
@@ -101,28 +123,7 @@ sub rename_path {
 
     return if $kebab_filename eq $filename;
 
-    my $new_path = catfile(dirname($path), $kebab_filename);
-    my $exists = "cannot rename $path to $new_path: target already exists";
-
-    # rename(2) silently replaces an existing target, so a file created at
-    # $new_path after a -e check would be lost. link(2) fails if the target
-    # exists, so link the new name and then unlink the old one. Skip it for
-    # symlinks, since some systems' link(2) follows them.
-    if (!-l $path) {
-        if (link $path, $new_path) {
-            unlink $path or return "failed to remove $path after linking it to $new_path: $OS_ERROR";
-            return;
-        }
-        return $exists if $OS_ERROR{EEXIST};
-    }
-
-    # Otherwise (a symlink, or a filesystem without hard links) check and
-    # rename, which leaves a small window for a race
-    return $exists if -e $new_path;
-
-    rename $path, $new_path or return "failed to rename $path to $new_path: $OS_ERROR";
-
-    return;
+    return rename_noreplace($path, catfile(dirname($path), $kebab_filename));
 }
 
 sub run {
