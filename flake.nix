@@ -10,12 +10,16 @@
       utils,
     }:
     let
+      # Read the version from the module so that it's kept in one place
+      version = builtins.head (
+        builtins.match ".*our [$]VERSION = '([^']+)';.*" (builtins.readFile ./lib/App/Normalo.pm)
+      );
       overlay = final: prev: {
         perlPackages = prev.perlPackages.overrideScope (
           perlFinal: perlPrev: {
             AppNormalo = perlFinal.buildPerlPackage {
               pname = "App-Normalo";
-              version = "0.07";
+              inherit version;
               src = self;
               propagatedBuildInputs = with perlFinal; [ TextUnidecode ];
             };

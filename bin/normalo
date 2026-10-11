@@ -6,8 +6,6 @@ use warnings;
 
 use App::Normalo;
 
-our $VERSION = '0.07';
-
 exit App::Normalo->run(@ARGV);
 
 __END__
