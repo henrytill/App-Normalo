@@ -94,16 +94,22 @@ sub convert {
 sub rename_noreplace {
     my ($from, $to) = @_;
 
-    # rename(2) silently replaces an existing target, but link(2) fails if the
-    # target exists, so link the new name and then unlink the old one. Skip
-    # it for symlinks, since some systems' link(2) follows them.
-    if (!-l $from && link $from, $to) {
+    # rename(2) silently replaces an existing target, but link(2) and
+    # symlink(2) fail if it exists, so create the new name with one of those
+    # and then remove the old one. Recreate a symlink rather than link it,
+    # since some systems' link(2) follows symlinks.
+    my $created =
+        -l $from
+        ? do { my $target = readlink $from; defined $target && symlink $target, $to }
+        : link $from, $to;
+
+    if ($created) {
         unlink $from or return "failed to remove $from after linking it to $to: $OS_ERROR";
         return;
     }
 
-    # Either the target exists, or this is a symlink or a filesystem without
-    # hard links, where checking and then renaming leaves a small race
+    # Either the target exists, or this is a filesystem without hard links,
+    # where checking and then renaming leaves a small race
     return "cannot rename $from to $to: target already exists" if -e $to;
 
     rename $from, $to or return "failed to rename $from to $to: $OS_ERROR";
