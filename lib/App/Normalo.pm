@@ -74,11 +74,16 @@ sub main {
     my ($progname, $out, $err) = @env{qw(progname out err)};
     my %opts;
 
-    GetOptionsFromArray(\@args, \%opts, 'help|h', 'version|v',)
-        or do {
-            print {$err} "Try '$progname --help' for more information.\n";
-            return 1;
-        };
+    # Getopt::Long reports bad options with warn, so send those to $err too
+    my $parsed = do {
+        local $SIG{__WARN__} = sub { print {$err} @_ };
+        GetOptionsFromArray(\@args, \%opts, 'help|h', 'version|v',);
+    };
+
+    if (!$parsed) {
+        print {$err} "Try '$progname --help' for more information.\n";
+        return 1;
+    }
 
     if ($opts{version}) {
         print {$out} "$progname version $VERSION\n";

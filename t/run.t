@@ -65,6 +65,7 @@ subtest 'unknown option' => sub {
     my ($code, $out, $err) = run_normalo('--bogus');
     is($code, 1, 'exits 1');
     is($out, q{}, 'prints nothing to STDOUT');
+    like($err, qr/\AUnknown\ option:\ bogus$/smx, 'reports the unknown option');
     like($err, qr/Try\ 'normalo\ --help'/smx, 'suggests --help');
 };
 
