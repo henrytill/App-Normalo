@@ -92,6 +92,31 @@ subtest 'renames several files' => sub {
     is_deeply(entries($dir), [ 'one-file.txt', 'two-file.txt' ], 'files renamed');
 };
 
+subtest '--dry-run' => sub {
+    for my $opt ('--dry-run', '-n') {
+        my $dir = tempdir(CLEANUP => 1);
+        my @paths = map { touch($dir, $_) } ('My File.txt', 'already-normal.txt');
+        my ($code, $out, $err) = run_normalo($opt, @paths);
+        is($code, 0, "$opt exits 0");
+        is($out, "$paths[0] -> " . catfile($dir, 'my-file.txt') . "\n", "$opt prints only the change");
+        is($err, q{}, "$opt prints nothing to STDERR");
+        is_deeply(entries($dir), [ 'My File.txt', 'already-normal.txt' ], "$opt renames nothing");
+    }
+};
+
+subtest '--dry-run reports what would fail' => sub {
+    my $dir = tempdir(CLEANUP => 1);
+    my $taken = touch($dir, 'Taken File.txt');
+    touch($dir, 'taken-file.txt');
+    my $path = touch($dir, 'Free File.txt');
+    my ($code, $out, $err) = run_normalo('--dry-run', $taken, catfile($dir, 'No Such File.txt'), $path);
+    is($code, 1, 'exits 1');
+    like($err, qr/\Anormalo:\ cannot\ rename\ .*:\ target\ already\ exists$/smx, 'reports collision');
+    like($err, qr/is\ not\ a\ regular\ file$/smx, 'reports missing file');
+    is($out, "$path -> " . catfile($dir, 'free-file.txt') . "\n", 'still previews the rest');
+    is_deeply(entries($dir), [ 'Free File.txt', 'Taken File.txt', 'taken-file.txt' ], 'renames nothing');
+};
+
 subtest 'already normalized file is left alone' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my $path = touch($dir, 'already-normal.txt');
