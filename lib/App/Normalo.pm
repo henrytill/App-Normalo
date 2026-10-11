@@ -11,18 +11,19 @@ use File::Spec::Functions qw(catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 # Preloaded methods go here.
 
 sub convert {
     my ($filename) = @_;
 
-    # Split filename into stem and extension
-    my ($stem, undef, $extension) = fileparse($filename, qr/ [.] [^.]* /smx);
+    # Split filename into stem and extension, decoding first so that the
+    # extension is split on characters rather than bytes
+    my ($stem, undef, $extension) = fileparse(decode('UTF-8', $filename), qr/ [.] [^.]* /smx);
 
-    # Convert UTF-8 to ASCII with transliteration
-    my $converted = unidecode decode 'UTF-8', $stem;
+    # Convert to ASCII with transliteration
+    my $converted = unidecode $stem;
 
     # Convert to lowercase
     $converted = lc $converted;
@@ -37,8 +38,14 @@ sub convert {
     # Replace multiple consecutive hyphens with single hyphen
     $converted =~ s{ -+ }{-}smxg;
 
-    # Rejoin with extension if present (lowercase the extension too)
-    return $extension ? $converted . lc $extension : $converted;
+    return $converted if !$extension;
+
+    # Normalize the extension the same way, but drop separators instead of
+    # turning them into hyphens
+    my $ext = lc unidecode substr $extension, 1;
+    $ext =~ s{ [^[:alnum:]] }{}smxg;
+
+    return "$converted.$ext";
 }
 
 sub run {
@@ -126,7 +133,7 @@ App::Normalo - Normalize filenames to kebab-case
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =head1 DESCRIPTION
 

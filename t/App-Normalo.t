@@ -47,4 +47,16 @@ is(App::Normalo::convert("file\twith\ttabs.txt"), 'file-with-tabs.txt',
 is(App::Normalo::convert("file\n\n\twith\t\tmultiple.txt"), 'file-with-multiple.txt',
     'Multiple control characters collapse to single hyphen');
 
+is(App::Normalo::convert('foo.TXTÉ'), 'foo.txte',
+    'Non-ASCII extension transliterated');
+
+is(App::Normalo::convert('Résumé.Café'), 'resume.cafe',
+    'Non-ASCII stem and extension transliterated');
+
+is(App::Normalo::convert('foo.T XT'), 'foo.txt',
+    'Spaces removed from extension');
+
+is(App::Normalo::convert('foo.t_x-t!'), 'foo.txt',
+    'Separators and special characters removed from extension');
+
 done_testing();
