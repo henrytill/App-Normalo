@@ -4,6 +4,9 @@ Revision history for Perl extension App::Normalo.
 	- Point the POD's BUGS AND LIMITATIONS section at the GitHub issue
 	  tracker, and add bugtracker and repository links to the distribution
 	  metadata (#16)
+	- Move the work of run() into main(), which takes the program name and
+	  output filehandles as parameters instead of using $0, STDOUT and
+	  STDERR (#15)
 
 0.04  Sat Oct 10 19:04:01 2026
 	- Normalize file extensions like the rest of the name: decode them as UTF-8,

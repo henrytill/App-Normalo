@@ -62,22 +62,31 @@ sub convert {
 sub run {
     my ($class, @args) = @_;
 
-    my $progname = basename $PROGRAM_NAME;
+    return main(\@args, progname => basename($PROGRAM_NAME), out => \*STDOUT, err => \*STDERR);
+}
+
+# Do the work of run(), naming the program $env{progname} in messages and
+# writing only to the $env{out} and $env{err} filehandles.
+sub main {
+    my ($args, %env) = @_;
+
+    my @args = @{$args};
+    my ($progname, $out, $err) = @env{qw(progname out err)};
     my %opts;
 
     GetOptionsFromArray(\@args, \%opts, 'help|h', 'version|v',)
         or do {
-            print {*STDERR} "Try '$progname --help' for more information.\n";
+            print {$err} "Try '$progname --help' for more information.\n";
             return 1;
         };
 
     if ($opts{version}) {
-        print "$progname version $VERSION\n";
+        print {$out} "$progname version $VERSION\n";
         return 0;
     }
 
     if ($opts{help}) {
-        print <<"END_HELP";
+        print {$out} <<"END_HELP";
 Usage: $progname [OPTIONS] FILE...
 
 Normalize filenames to kebab-case format.
@@ -94,14 +103,14 @@ END_HELP
     }
 
     if (!@args) {
-        print {*STDERR} "$progname: missing file operand\n";
-        print {*STDERR} "Try '$progname --help' for more information.\n";
+        print {$err} "$progname: missing file operand\n";
+        print {$err} "Try '$progname --help' for more information.\n";
         return 1;
     }
 
     foreach my $path (@args) {
         if (!-f $path) {
-            print {*STDERR} $path . " is not a regular file\n";
+            print {$err} $path . " is not a regular file\n";
             return 1;
         }
 
@@ -113,7 +122,7 @@ END_HELP
             my $new_path = catfile($dir, $kebab_filename);
 
             if (-e $new_path) {
-                print {*STDERR} "Cannot rename $path to $new_path: target already exists\n";
+                print {$err} "Cannot rename $path to $new_path: target already exists\n";
                 return 1;
             }
 
@@ -180,6 +189,40 @@ Returns an exit code: 0 on success, 1 on error.
 
 This method is typically not called directly. Use the L<normalo> command-line
 tool instead.
+
+=head2 main()
+
+  my $exit_code = App::Normalo::main(\@args,
+      progname => 'normalo',
+      out      => \*STDOUT,
+      err      => \*STDERR,
+  );
+
+Does the work of C<run()>, taking its environment as parameters instead of
+from globals. C<run()> calls it with the basename of C<$0> and the standard
+filehandles.
+
+Takes a reference to the list of command-line arguments, then these named
+parameters, all required:
+
+=over 4
+
+=item progname
+
+The program name used in help, version, and error messages.
+
+=item out
+
+The filehandle that help and version output are printed to.
+
+=item err
+
+The filehandle that error messages are printed to.
+
+=back
+
+Returns an exit code: 0 on success, 1 on error. Does not modify the array that
+C<\@args> refers to.
 
 =head1 DEPENDENCIES
 
