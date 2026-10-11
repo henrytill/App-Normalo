@@ -93,9 +93,16 @@ sub main {
     my ($progname, $out, $err) = @env{qw(progname out err)};
     my %opts;
 
+    # Print an error message, prefixed with the program name, to $err
+    my $error = sub {
+        my ($msg) = @_;
+        chomp $msg;
+        print {$err} "$progname: $msg\n";
+    };
+
     # Getopt::Long reports bad options with warn, so send those to $err too
     my $parsed = do {
-        local $SIG{__WARN__} = sub { print {$err} @_ };
+        local $SIG{__WARN__} = $error;
         GetOptionsFromArray(\@args, \%opts, 'help|h', 'version|v',);
     };
 
@@ -127,7 +134,7 @@ END_HELP
     }
 
     if (!@args) {
-        print {$err} "$progname: missing file operand\n";
+        $error->('missing file operand');
         print {$err} "Try '$progname --help' for more information.\n";
         return 1;
     }
@@ -137,8 +144,8 @@ END_HELP
     my $status = 0;
 
     foreach my $path (@args) {
-        my $error = rename_path($path) // next;
-        print {$err} "$progname: $error\n";
+        my $msg = rename_path($path) // next;
+        $error->($msg);
         $status = 1;
     }
 
