@@ -136,4 +136,14 @@ subtest 'case-only rename through a temporary name (#2)' => sub {
     is(slurp($new_path), 'source', 'contents kept');
 };
 
+subtest 'case-only rename of a name at the length limit (#2)' => sub {
+    my $dir = tempdir(CLEANUP => 1);
+    my $name = ('A' x 251) . '.txt';
+    my $path = write_file($dir, $name, 'source');
+    my $new_path = catfile($dir, lc $name);
+
+    is(App::Normalo::rename_case($path, $new_path), undef, 'succeeds');
+    is_deeply(entries($dir), [ lc $name ], 'renamed, no temporary name left');
+};
+
 done_testing();
