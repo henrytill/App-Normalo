@@ -143,24 +143,6 @@ sub rename_case {
     return rename_noreplace($path, $tmp) // rename_noreplace($tmp, $new_path);
 }
 
-# Work out where $path should be renamed to. Return the new path, an empty
-# list if its name is already normalized, or (undef, $message) if it can't be
-# renamed.
-sub target_path {
-    my ($path) = @_;
-
-    return (undef, "$path is not a regular file") if !-f $path;
-
-    my $filename = basename $path;
-    my $kebab_filename = eval { convert $filename } // return (undef, "cannot rename $path: $EVAL_ERROR");
-
-    return if $kebab_filename eq $filename;
-
-    # Replace just the last component, so that the new path keeps whatever
-    # directory prefix $path was given with (none, for a bare name)
-    return substr($path, 0, -length $filename) . $kebab_filename;
-}
-
 # Return true if renaming $path to $new_path only changes the case of the name,
 # and $new_path finds $path itself, as it does on a case-insensitive filesystem
 sub is_case_change {
@@ -179,35 +161,35 @@ sub is_case_change {
     return !$exact;
 }
 
-# Rename $path to its normalized name. Return undef on success, or a message
-# saying why it couldn't be renamed.
+# Rename $path to its normalized name. With $preview, a filehandle, print
+# "$path -> $new_path" to it instead, after the same checks. Return undef on
+# success, or a message saying why it couldn't be renamed.
 sub rename_path {
-    my ($path) = @_;
+    my ($path, $preview) = @_;
 
-    my ($new_path, $error) = target_path($path);
-    return $error if !defined $new_path;
+    return "$path is not a regular file" if !-f $path;
 
-    return rename_case($path, $new_path) if is_case_change($path, $new_path);
+    my $filename = basename $path;
+    my $kebab_filename = eval { convert $filename } // return "cannot rename $path: $EVAL_ERROR";
 
-    return rename_noreplace($path, $new_path);
-}
+    return if $kebab_filename eq $filename;
 
-# Print "$path -> $new_path" to $out if rename_path($path) would rename it, but
-# don't rename anything. Return undef, or a message saying why it couldn't be
-# renamed.
-sub preview_path {
-    my ($path, $out) = @_;
+    # Replace just the last component, so that the new path keeps whatever
+    # directory prefix $path was given with (none, for a bare name)
+    my $new_path = substr($path, 0, -length $filename) . $kebab_filename;
+    my $case_change = is_case_change($path, $new_path);
 
-    my ($new_path, $error) = target_path($path);
-    return $error if !defined $new_path;
+    if ($preview) {
 
-    # -e follows symlinks, so check -l too for a dangling one
-    return "cannot rename $path to $new_path: target already exists"
-        if !is_case_change($path, $new_path) && (-e $new_path || -l $new_path);
+        # -e follows symlinks, so check -l too for a dangling one
+        return "cannot rename $path to $new_path: target already exists"
+            if !$case_change && (-e $new_path || -l $new_path);
 
-    print {$out} "$path -> $new_path\n";
+        print {$preview} "$path -> $new_path\n";
+        return;
+    }
 
-    return;
+    return $case_change ? rename_case($path, $new_path) : rename_noreplace($path, $new_path);
 }
 
 sub run {
@@ -276,7 +258,7 @@ END_HELP
     my $status = 0;
 
     foreach my $path (@args) {
-        my $msg = ($opts{'dry-run'} ? preview_path($path, $out) : rename_path($path)) // next;
+        my $msg = rename_path($path, $opts{'dry-run'} && $out) // next;
         $error->($msg);
         $status = 1;
     }
