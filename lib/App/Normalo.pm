@@ -201,7 +201,9 @@ Does not modify files on disk.
 Takes a single argument, the filename to normalize, and returns the normalized
 filename as a string. The filename is a byte string, as returned by C<readdir>
 or found in C<@ARGV>, and must be valid UTF-8: C<convert()> dies with
-C<"name is not valid UTF-8\n"> rather than guess at another encoding.
+C<"name is not valid UTF-8\n"> rather than guess at another encoding. It
+decodes strictly, so it also refuses surrogates and Unicode noncharacters such
+as U+FFFE, which would otherwise be dropped from the name without a trace.
 
 Example:
 
