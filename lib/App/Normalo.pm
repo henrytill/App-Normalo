@@ -11,7 +11,7 @@ use File::Spec::Functions qw(catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 # Preloaded methods go here.
 
@@ -152,26 +152,59 @@ sub rename_case {
     return rename_noreplace($tmp, $new_path);
 }
 
+# Work out where $path should be renamed to. Return the new path, an empty
+# list if its name is already normalized, or (undef, $message) if it can't be
+# renamed.
+sub target_path {
+    my ($path) = @_;
+
+    return (undef, "$path is not a regular file") if !-f $path;
+
+    my $filename = basename $path;
+    my $kebab_filename = eval { convert $filename } // return (undef, "cannot rename $path: $EVAL_ERROR");
+
+    return if $kebab_filename eq $filename;
+
+    return catfile(dirname($path), $kebab_filename);
+}
+
+# Return true if renaming $path to $new_path only changes the case of the name,
+# and $new_path finds $path itself, as it does on a case-insensitive filesystem
+sub is_case_change {
+    my ($path, $new_path) = @_;
+
+    return lc basename($path) eq basename($new_path) && same_file($path, $new_path);
+}
+
 # Rename $path to its normalized name. Return undef on success, or a message
 # saying why it couldn't be renamed.
 sub rename_path {
     my ($path) = @_;
 
-    return "$path is not a regular file" if !-f $path;
+    my ($new_path, $error) = target_path($path);
+    return $error if !defined $new_path;
 
-    my $filename = basename $path;
-    my $kebab_filename = eval { convert $filename } // return "cannot rename $path: $EVAL_ERROR";
-
-    return if $kebab_filename eq $filename;
-
-    my $new_path = catfile(dirname($path), $kebab_filename);
-
-    # On a case-insensitive filesystem, a change of case finds $path itself
-    # at $new_path
-    return rename_case($path, $new_path)
-        if lc $filename eq $kebab_filename && same_file($path, $new_path);
+    return rename_case($path, $new_path) if is_case_change($path, $new_path);
 
     return rename_noreplace($path, $new_path);
+}
+
+# Print "$path -> $new_path" to $out if rename_path($path) would rename it, but
+# don't rename anything. Return undef, or a message saying why it couldn't be
+# renamed.
+sub preview_path {
+    my ($path, $out) = @_;
+
+    my ($new_path, $error) = target_path($path);
+    return $error if !defined $new_path;
+
+    # -e follows symlinks, so check -l too for a dangling one
+    return "cannot rename $path to $new_path: target already exists"
+        if !is_case_change($path, $new_path) && (-e $new_path || -l $new_path);
+
+    print {$out} "$path -> $new_path\n";
+
+    return;
 }
 
 sub run {
@@ -197,7 +230,7 @@ sub main {
     # Getopt::Long reports bad options with warn, so send those to $err too
     my $parsed = do {
         local $SIG{__WARN__} = $error;
-        GetOptionsFromArray(\@args, \%opts, 'help|h', 'version|v',);
+        GetOptionsFromArray(\@args, \%opts, 'dry-run|n', 'help|h', 'version|v',);
     };
 
     if (!$parsed) {
@@ -217,12 +250,14 @@ Usage: $progname [OPTIONS] FILE...
 Normalize filenames to kebab-case format.
 
 Options:
+  -n, --dry-run    Show what would be renamed, without renaming anything
   -h, --help       Display this help message and exit
   -v, --version    Display version information and exit
 
 Examples:
   $progname "My File.txt"
   $progname file1.txt file2.txt file3.txt
+  $progname --dry-run *
 END_HELP
         return 0;
     }
@@ -238,7 +273,7 @@ END_HELP
     my $status = 0;
 
     foreach my $path (@args) {
-        my $msg = rename_path($path) // next;
+        my $msg = ($opts{'dry-run'} ? preview_path($path, $out) : rename_path($path)) // next;
         $error->($msg);
         $status = 1;
     }
@@ -318,8 +353,9 @@ from globals. C<run()> calls it with the basename of C<$0> and the standard
 filehandles.
 
 Takes a reference to the list of command-line arguments, then three required
-named parameters: C<progname> names the program in messages, help and version
-output go to the C<out> filehandle, and error messages go to C<err>.
+named parameters: C<progname> names the program in messages, help, version and
+C<--dry-run> output go to the C<out> filehandle, and error messages go to
+C<err>.
 
 Returns an exit code, as C<run()> does. Does not modify the array that
 C<\@args> refers to.

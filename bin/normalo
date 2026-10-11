@@ -50,6 +50,12 @@ would remain.
 
 =over 4
 
+=item B<-n>, B<--dry-run>
+
+Print C<< old -> new >> for each file that would be renamed, without renaming
+anything. Files that can't be renamed are still reported, and the exit status is
+the same as for a real run.
+
 =item B<-h>, B<--help>
 
 Display help message and exit.
@@ -70,6 +76,9 @@ Display version information and exit.
 
   normalo "Café_2024 (Final).PDF"
   # Renames to: cafe-2024-final.pdf
+
+  normalo --dry-run *
+  # Shows what would be renamed, without renaming anything
 
 =head1 DIAGNOSTICS
 
