@@ -147,6 +147,19 @@ subtest 'name that is not valid UTF-8 (#7)' => sub {
     is_deeply(entries($dir), [ 'other-file.txt', "\xe9t\xe9 File.txt" ], 'file left alone, others renamed');
 };
 
+subtest 'dangling symlink at the target is not clobbered (#10)' => sub {
+    plan skip_all => 'symlinks not supported' if !eval { symlink q{}, q{}; 1 };
+    my $dir = tempdir(CLEANUP => 1);
+    my $path = touch($dir, 'My File.txt');
+    my $target = catfile($dir, 'my-file.txt');
+    symlink 'nowhere', $target or die "Cannot create $target: $!";
+    my ($code, undef, $err) = run_normalo($path);
+    is($code, 1, 'exits 1');
+    like($err, qr/target\ already\ exists$/smx, 'reports collision');
+    ok(-l $target, 'symlink left in place');
+    ok(-e $path, 'file not renamed');
+};
+
 subtest 'symlink is renamed, not its target' => sub {
     plan skip_all => 'symlinks not supported' if !eval { symlink q{}, q{}; 1 };
     my $dir = tempdir(CLEANUP => 1);

@@ -109,8 +109,10 @@ sub rename_noreplace {
     }
 
     # Either the target exists, or this is a filesystem without hard links,
-    # where checking and then renaming leaves a small race
-    return "cannot rename $from to $to: target already exists" if -e $to;
+    # where checking and then renaming leaves a small race. -e follows
+    # symlinks, so check -l too, or a dangling symlink would be replaced.
+    return "cannot rename $from to $to: target already exists"
+        if $OS_ERROR{EEXIST} || -e $to || -l $to;
 
     rename $from, $to or return "failed to rename $from to $to: $OS_ERROR";
 
