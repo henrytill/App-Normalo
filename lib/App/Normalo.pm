@@ -139,17 +139,8 @@ sub rename_case {
 
     # Keep the temporary name short, so that it fits wherever $new_path does
     my $tmp = catfile(dirname($new_path), ".normalo-$PID");
-    my $error = rename_noreplace($path, $tmp);
-    return $error if defined $error;
 
-    # If $new_path is still there, it's a separate hard link to the same file
-    # on a case-sensitive filesystem, not this file under another case, so
-    # put the file back rather than remove either name
-    if (same_file($tmp, $new_path)) {
-        return rename_noreplace($tmp, $path) // "cannot rename $path to $new_path: target already exists";
-    }
-
-    return rename_noreplace($tmp, $new_path);
+    return rename_noreplace($path, $tmp) // rename_noreplace($tmp, $new_path);
 }
 
 # Work out where $path should be renamed to. Return the new path, an empty
@@ -175,7 +166,17 @@ sub target_path {
 sub is_case_change {
     my ($path, $new_path) = @_;
 
-    return lc basename($path) eq basename($new_path) && same_file($path, $new_path);
+    my $name = basename $new_path;
+    return 0 if lc basename($path) ne $name || !same_file($path, $new_path);
+
+    # Two hard links whose names differ only in case are the same file too, on
+    # a case-sensitive filesystem. Tell them apart by whether the directory
+    # has an entry with exactly the new name.
+    opendir my $dh, dirname($new_path) or return 0;
+    my $exact = grep { $_ eq $name } readdir $dh;
+    closedir $dh;
+
+    return !$exact;
 }
 
 # Rename $path to its normalized name. Return undef on success, or a message
