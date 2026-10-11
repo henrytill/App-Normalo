@@ -7,12 +7,14 @@ use File::Spec::Functions qw(catfile);
 use File::Temp qw(tempdir);
 use Test::More;
 
-# Replace link() before App::Normalo is compiled, so that a test can run
-# $link_hook in its place
-our $link_hook;
+# Replace link() and symlink() before App::Normalo is compiled, so that a
+# test can run a hook in their place
+our ($link_hook, $symlink_hook);
 
 BEGIN {
     *CORE::GLOBAL::link = sub { return $link_hook ? $link_hook->(@_) : CORE::link($_[0], $_[1]) };
+    *CORE::GLOBAL::symlink =
+        sub { return $symlink_hook ? $symlink_hook->(@_) : CORE::symlink($_[0], $_[1]) };
 }
 
 use App::Normalo;
@@ -62,6 +64,25 @@ subtest 'falls back to rename without hard links' => sub {
     is(App::Normalo::rename_path($path), undef, 'succeeds');
     ok(!-e $path, 'old name gone');
     is(slurp(catfile($dir, 'my-file.txt')), 'source', 'renamed');
+};
+
+subtest 'target created before a symlink is moved is not clobbered (#10)' => sub {
+    plan skip_all => 'symlinks not supported' if !eval { CORE::symlink(q{}, q{}); 1 };
+    my $dir = tempdir(CLEANUP => 1);
+    write_file($dir, 'Target File.txt', 'source');
+    my $path = catfile($dir, 'Link Name');
+    CORE::symlink('Target File.txt', $path) or die "Cannot create $path: $!";
+    my $new_path = catfile($dir, 'link-name');
+    local $symlink_hook = sub {
+        write_file($dir, 'link-name', 'target');
+        return CORE::symlink($_[0], $_[1]);
+    };
+
+    my $error = App::Normalo::rename_path($path);
+    like($error, qr/target\ already\ exists$/smx, 'reports collision');
+    ok(!-l $new_path, 'target is not replaced by the symlink');
+    is(slurp($new_path), 'target', 'target keeps its contents');
+    ok(-l $path, 'symlink left in place');
 };
 
 done_testing();
