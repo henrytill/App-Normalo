@@ -101,4 +101,34 @@ subtest 'dangling symlink at the target is not clobbered without hard links (#10
     is(slurp($path), 'source', 'source left in place');
 };
 
+subtest 'case-only rename without hard links (#2)' => sub {
+    my $dir = tempdir(CLEANUP => 1);
+    my $path = write_file($dir, 'File.txt', 'source');
+    CORE::link($path, catfile($dir, 'file.txt')) or plan skip_all => "hard links not supported: $!";
+    local $link_hook = sub {
+        $! = EPERM;    ## no critic (Variables::RequireLocalizedPunctuationVars)
+        return 0;
+    };
+
+    is(App::Normalo::rename_path($path), undef, 'succeeds');
+    ok(!-e $path, 'old name gone');
+    is(slurp(catfile($dir, 'file.txt')), 'source', 'renamed');
+};
+
+subtest 'case-only rename through a temporary name (#2)' => sub {
+
+    # On a case-insensitive filesystem the old name is the only entry, so
+    # $new_path doesn't exist once it's been renamed to the temporary name
+    my $dir = tempdir(CLEANUP => 1);
+    my $path = write_file($dir, 'File.txt', 'source');
+    my $new_path = catfile($dir, 'file.txt');
+
+    is(App::Normalo::rename_case($path, $new_path), undef, 'succeeds');
+    opendir my $dh, $dir or die "Cannot open $dir: $!";
+    my @names = sort grep { !/\A[.][.]?\z/smx } readdir $dh;
+    closedir $dh or die "Cannot close $dir: $!";
+    is_deeply(\@names, ['file.txt'], 'renamed, no temporary name left');
+    is(slurp($new_path), 'source', 'contents kept');
+};
+
 done_testing();

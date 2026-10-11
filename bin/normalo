@@ -86,6 +86,11 @@ The specified path is not a regular file. Only regular files can be renamed.
 
 The target filename already exists. B<normalo> will not overwrite existing files.
 
+A rename that only changes case goes through a temporary name ending in
+C<.normalo-> and a process ID, because some case-insensitive filesystems ignore
+a direct rename. If the second step fails, the message names the temporary
+name, which is where the file is.
+
 =item C<< cannot rename %s: name is not valid UTF-8 >>
 
 The filename isn't valid UTF-8, for example because it was created in

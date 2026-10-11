@@ -11,7 +11,7 @@ use File::Spec::Functions qw(catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 # Preloaded methods go here.
 
@@ -119,6 +119,38 @@ sub rename_noreplace {
     return;
 }
 
+# Return true if $path and $other are the same directory entry or hard links
+# to the same file. Uses lstat, so a symlink is compared, not its target.
+sub same_file {
+    my ($path, $other) = @_;
+
+    my ($dev, $ino) = lstat $path or return 0;
+    my ($other_dev, $other_ino) = lstat $other or return 0;
+
+    return $dev == $other_dev && $ino == $other_ino;
+}
+
+# Rename $path to $new_path, which is the same file under a name differing
+# only in case. Some case-insensitive filesystems ignore a rename between two
+# names for the same file, so go through a temporary name. Return undef on
+# success, or a message saying why it couldn't be renamed.
+sub rename_case {
+    my ($path, $new_path) = @_;
+
+    my $tmp = "$new_path.normalo-$PID";
+    my $error = rename_noreplace($path, $tmp);
+    return $error if defined $error;
+
+    # If $new_path is still there, it was a separate hard link to the same
+    # file (on a case-sensitive filesystem), so just drop the extra name
+    if (same_file($tmp, $new_path)) {
+        unlink $tmp or return "failed to remove $tmp: $OS_ERROR";
+        return;
+    }
+
+    return rename_noreplace($tmp, $new_path);
+}
+
 # Rename $path to its normalized name. Return undef on success, or a message
 # saying why it couldn't be renamed.
 sub rename_path {
@@ -131,7 +163,13 @@ sub rename_path {
 
     return if $kebab_filename eq $filename;
 
-    return rename_noreplace($path, catfile(dirname($path), $kebab_filename));
+    my $new_path = catfile(dirname($path), $kebab_filename);
+
+    # On a case-insensitive filesystem, a change of case finds $path itself
+    # at $new_path
+    return rename_case($path, $new_path) if same_file($path, $new_path);
+
+    return rename_noreplace($path, $new_path);
 }
 
 sub run {

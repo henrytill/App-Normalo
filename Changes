@@ -1,5 +1,10 @@
 Revision history for Perl extension App::Normalo.
 
+0.10  Sun Oct 11 15:13:34 2026
+	- Allow renames that only change case on case-insensitive filesystems,
+	  such as the macOS and Windows defaults and FAT, instead of reporting
+	  that the target already exists (#2)
+
 0.09  Sun Oct 11 15:12:37 2026
 	- Never replace a file that appears at the target between the check and
 	  the rename: create the new name with link(2), or symlink(2) for a
