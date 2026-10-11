@@ -105,6 +105,16 @@ subtest '--dry-run' => sub {
     }
 };
 
+subtest '--dry-run reports a hard link differing only in case' => sub {
+    my $dir = tempdir(CLEANUP => 1);
+    my $path = touch($dir, 'File.txt');
+    link $path, catfile($dir, 'file.txt') or plan skip_all => "hard links not supported: $!";
+    my ($code, $out, $err) = run_normalo('--dry-run', $path);
+    is($code, 1, 'exits 1, as a real run would');
+    is($out, q{}, 'previews nothing');
+    like($err, qr/target\ already\ exists$/smx, 'reports collision');
+};
+
 subtest '--dry-run keeps the path as given' => sub {
     my $dir = tempdir(CLEANUP => 1);
     touch($dir, 'My File.txt');
