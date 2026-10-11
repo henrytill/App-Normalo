@@ -5,4 +5,5 @@ README
 bin/normalo
 t/App-Normalo.t
 t/run.t
+t/version.t
 lib/App/Normalo.pm

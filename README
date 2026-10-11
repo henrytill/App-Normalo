@@ -1,5 +1,5 @@
-App-Normalo version 0.03
-========================
+App-Normalo
+===========
 
 App::Normalo normalizes filenames to kebab-case format. It converts
 spaces, underscores, and other separators to hyphens, lowercases all
