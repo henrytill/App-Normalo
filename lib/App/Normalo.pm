@@ -11,7 +11,7 @@ use File::Spec::Functions qw(catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 # Preloaded methods go here.
 
@@ -51,6 +51,10 @@ sub convert {
     my ($stem, undef, $extension) = fileparse(decode('UTF-8', $filename), qr/ [.] [^.]* /smx);
 
     my $converted = kebab $stem;
+
+    # Leave the name alone if its stem normalizes to nothing, rather than
+    # hide the file behind its extension. A dotfile's stem is already empty.
+    return $filename if $stem ne q{} && $converted eq q{};
 
     # Normalize the extension the same way, but without the hyphens, and
     # drop it if nothing is left
@@ -175,7 +179,7 @@ App::Normalo - Normalize filenames to kebab-case
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =head1 DESCRIPTION
 

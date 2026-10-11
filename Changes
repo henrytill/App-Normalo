@@ -1,5 +1,9 @@
 Revision history for Perl extension App::Normalo.
 
+0.07  Sun Oct 11 14:04:37 2026
+	- Leave a file unchanged if nothing of its stem survives normalization,
+	  rather than renaming `!!!.txt` to the hidden `.txt` (#3)
+
 0.06  Sun Oct 11 14:03:47 2026
 	- Trim hyphens from the start and end of the name, so that `-Dash.txt`
 	  becomes `dash.txt` rather than a name that looks like an option (#4)

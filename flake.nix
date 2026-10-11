@@ -15,7 +15,7 @@
           perlFinal: perlPrev: {
             AppNormalo = perlFinal.buildPerlPackage {
               pname = "App-Normalo";
-              version = "0.06";
+              version = "0.07";
               src = self;
               propagatedBuildInputs = with perlFinal; [ TextUnidecode ];
             };

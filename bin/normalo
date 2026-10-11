@@ -6,7 +6,7 @@ use warnings;
 
 use App::Normalo;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 exit App::Normalo->run(@ARGV);
 
@@ -44,6 +44,9 @@ It performs the following transformations:
 =item * Preserves file extensions
 
 =back
+
+A file is left unchanged if nothing of its name, apart from the extension,
+would remain.
 
 =head1 OPTIONS
 
