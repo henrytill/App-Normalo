@@ -82,12 +82,7 @@ sub rename_path {
     return "$path is not a regular file" if !-f $path;
 
     my $filename = basename $path;
-    my $kebab_filename = eval { convert $filename };
-
-    if (!defined $kebab_filename) {
-        chomp(my $error = $EVAL_ERROR);
-        return "cannot rename $path: $error";
-    }
+    my $kebab_filename = eval { convert $filename } // return "cannot rename $path: $EVAL_ERROR";
 
     return if $kebab_filename eq $filename;
 
