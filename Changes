@@ -1,5 +1,8 @@
 Revision history for Perl extension App::Normalo.
 
+0.04  (unreleased)
+	- Add tests for run()
+
 0.03  Sat Oct 18 21:46:22 2025
 	- Prevent file clobbering by checking if target exists before renaming
 
