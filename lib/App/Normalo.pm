@@ -63,7 +63,8 @@ sub convert {
         $converted .= ".$ext" if $ext ne q{};
     }
 
-    # Leave the name alone rather than reduce it to nothing
+    # Only a dotfile whose extension normalizes to nothing can get here empty.
+    # Once #9 parses dotfiles with a stem, the check above covers this too.
     return $converted ne q{} ? $converted : $filename;
 }
 
