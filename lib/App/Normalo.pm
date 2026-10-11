@@ -11,7 +11,7 @@ use File::Spec::Functions qw(catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 # Preloaded methods go here.
 
@@ -111,30 +111,38 @@ END_HELP
         return 1;
     }
 
+    # Report each failure and keep going, like mv(1), so that one bad path
+    # doesn't leave the rest of the batch unprocessed
+    my $status = 0;
+
     foreach my $path (@args) {
         if (!-f $path) {
-            print {$err} $path . " is not a regular file\n";
-            return 1;
+            print {$err} "$progname: $path is not a regular file\n";
+            $status = 1;
+            next;
         }
 
         my $filename = basename $path;
         my $dir = dirname $path;
         my $kebab_filename = convert $filename;
 
-        if ($kebab_filename ne $filename) {
-            my $new_path = catfile($dir, $kebab_filename);
+        next if $kebab_filename eq $filename;
 
-            if (-e $new_path) {
-                print {$err} "Cannot rename $path to $new_path: target already exists\n";
-                return 1;
-            }
+        my $new_path = catfile($dir, $kebab_filename);
 
-            rename $path, $new_path
-                or die 'Failed to rename ' . $path . ' to ' . $new_path . ': ' . $OS_ERROR . "\n";
+        if (-e $new_path) {
+            print {$err} "$progname: cannot rename $path to $new_path: target already exists\n";
+            $status = 1;
+            next;
+        }
+
+        if (!rename $path, $new_path) {
+            print {$err} "$progname: failed to rename $path to $new_path: $OS_ERROR\n";
+            $status = 1;
         }
     }
 
-    return 0;
+    return $status;
 }
 
 1;
@@ -156,7 +164,7 @@ App::Normalo - Normalize filenames to kebab-case
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =head1 DESCRIPTION
 
@@ -185,10 +193,12 @@ Example:
   my $exit_code = App::Normalo->run(@ARGV);
 
 Command-line entry point. Processes command-line arguments and renames files
-to their kebab-case equivalents.
+to their kebab-case equivalents. A path that can't be renamed is reported and
+skipped, and the remaining paths are still processed.
 
 Takes the class name and a list of command-line arguments (typically C<@ARGV>).
-Returns an exit code: 0 on success, 1 on error.
+Returns an exit code: 0 on success, 1 if any path could not be renamed or the
+arguments are invalid.
 
 This method is typically not called directly. Use the L<normalo> command-line
 tool instead.
@@ -209,7 +219,7 @@ Takes a reference to the list of command-line arguments, then three required
 named parameters: C<progname> names the program in messages, help and version
 output go to the C<out> filehandle, and error messages go to C<err>.
 
-Returns an exit code: 0 on success, 1 on error. Does not modify the array that
+Returns an exit code, as C<run()> does. Does not modify the array that
 C<\@args> refers to.
 
 =head1 DEPENDENCIES
