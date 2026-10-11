@@ -165,7 +165,9 @@ sub target_path {
 
     return if $kebab_filename eq $filename;
 
-    return catfile(dirname($path), $kebab_filename);
+    # Replace just the last component, so that the new path keeps whatever
+    # directory prefix $path was given with (none, for a bare name)
+    return substr($path, 0, -length $filename) . $kebab_filename;
 }
 
 # Return true if renaming $path to $new_path only changes the case of the name,

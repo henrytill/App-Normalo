@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use App::Normalo;
+use Cwd qw(getcwd);
 use File::Spec::Functions qw(catfile);
 use File::Temp qw(tempdir);
 use Test::More;
@@ -102,6 +103,17 @@ subtest '--dry-run' => sub {
         is($err, q{}, "$opt prints nothing to STDERR");
         is_deeply(entries($dir), [ 'My File.txt', 'already-normal.txt' ], "$opt renames nothing");
     }
+};
+
+subtest '--dry-run keeps the path as given' => sub {
+    my $dir = tempdir(CLEANUP => 1);
+    touch($dir, 'My File.txt');
+    my $cwd = getcwd();
+    chdir $dir or die "Cannot chdir to $dir: $!";
+    my ($code, $out) = run_normalo('--dry-run', 'My File.txt');
+    chdir $cwd or die "Cannot chdir to $cwd: $!";
+    is($code, 0, 'exits 0');
+    is($out, "My File.txt -> my-file.txt\n", 'no ./ added to a bare name');
 };
 
 subtest '--dry-run reports what would fail' => sub {
