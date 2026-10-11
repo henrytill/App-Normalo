@@ -31,6 +31,17 @@ WriteMakefile(
     ABSTRACT_FROM => 'lib/App/Normalo.pm',    # retrieve abstract from module
     AUTHOR => 'Henry Till <henrytill@gmail.com>',
     EXE_FILES => ['bin/normalo'],
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+        resources => {
+            bugtracker => { web => 'https://github.com/henrytill/App-Normalo/issues' },
+            repository => {
+                type => 'git',
+                url => 'https://github.com/henrytill/App-Normalo.git',
+                web => 'https://github.com/henrytill/App-Normalo',
+            },
+        },
+    },
 
     #LICENSE           => 'perl',
     #Value must be from legacy list of licenses here

@@ -205,9 +205,8 @@ None reported.
 
 =head1 BUGS AND LIMITATIONS
 
-No bugs have been reported.
-
-Please report any bugs or feature requests to the author.
+Please report bugs and feature requests at
+L<https://github.com/henrytill/App-Normalo/issues>.
 
 =head1 AUTHOR
 
