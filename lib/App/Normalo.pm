@@ -52,8 +52,8 @@ sub convert {
     my $decoded = eval { decode('UTF-8', $filename, FB_CROAK | LEAVE_SRC) };
     die "name is not valid UTF-8\n" if !defined $decoded;
 
-    # Split filename into stem and extension, decoding first so that the
-    # extension is split on characters rather than bytes
+    # Split the decoded name, so that the extension is split on characters
+    # rather than bytes
     my ($stem, undef, $extension) = fileparse($decoded, qr/ [.] [^.]* /smx);
 
     my $converted = kebab $stem;
