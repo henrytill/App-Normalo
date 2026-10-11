@@ -132,10 +132,7 @@ subtest 'case-only rename through a temporary name (#2)' => sub {
     my $new_path = catfile($dir, 'file.txt');
 
     is(App::Normalo::rename_case($path, $new_path), undef, 'succeeds');
-    opendir my $dh, $dir or die "Cannot open $dir: $!";
-    my @names = sort grep { !/\A[.][.]?\z/smx } readdir $dh;
-    closedir $dh or die "Cannot close $dir: $!";
-    is_deeply(\@names, ['file.txt'], 'renamed, no temporary name left');
+    is_deeply(entries($dir), ['file.txt'], 'renamed, no temporary name left');
     is(slurp($new_path), 'source', 'contents kept');
 };
 
