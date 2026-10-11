@@ -39,7 +39,10 @@ It performs the following transformations:
 
 =item * Removes hyphens from the start and end of the name
 
-=item * Preserves file extensions
+=item * Preserves file extensions: everything after the last dot, together with
+any components of one to three letters before it, as in C<.tar.gz>
+
+=item * Keeps the leading dot of a dotfile, and normalizes the rest of its name
 
 =back
 

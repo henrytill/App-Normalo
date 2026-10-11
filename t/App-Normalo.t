@@ -32,8 +32,8 @@ is(App::Normalo::convert('already-kebab-case.txt'), 'already-kebab-case.txt',
 is(App::Normalo::convert('No Extension'), 'no-extension',
     'File without extension');
 
-is(App::Normalo::convert('file.tar.gz'), 'file-tar.gz',
-    'Extension preserved');
+is(App::Normalo::convert('file.tar.gz'), 'file.tar.gz',
+    'Compound extension preserved');
 
 is(App::Normalo::convert('Café_2024 (Final).PDF'), 'cafe-2024-final.pdf',
     'Complex mixed case');
@@ -97,5 +97,35 @@ is($@, "name is not valid UTF-8\n", 'Name with an encoded surrogate is rejected'
 
 eval { App::Normalo::convert("a\xef\xbf\xbe\xe9.txt") };
 is($@, "name is not valid UTF-8\n", 'Name with a noncharacter and a Latin-1 byte is rejected');
+
+is(App::Normalo::convert('.hidden file'), '.hidden-file',
+    'Dotfile keeps its dot and normalizes the rest');
+
+is(App::Normalo::convert('.Bashrc'), '.bashrc',
+    'Dotfile lowercased');
+
+is(App::Normalo::convert('.Config File.JSON'), '.config-file.json',
+    'Dotfile with an extension');
+
+is(App::Normalo::convert('Report v1.2'), 'report-v1.2',
+    'Anything after the last dot is the extension');
+
+is(App::Normalo::convert('Report v1.2.pdf'), 'report-v1-2.pdf',
+    'Digits before the extension stay in the name');
+
+is(App::Normalo::convert('foo.'), 'foo',
+    'Trailing dot dropped');
+
+is(App::Normalo::convert('Backup.TAR.GZ'), 'backup.tar.gz',
+    'Compound extension lowercased');
+
+is(App::Normalo::convert('pkg-1.0.pkg.tar.zst'), 'pkg-1-0.pkg.tar.zst',
+    'Run of short extensions kept together');
+
+is(App::Normalo::convert('My.Notes.txt'), 'my-notes.txt',
+    'Longer component before the extension stays in the name');
+
+is(App::Normalo::convert('file.tar.!!'), 'file.tar',
+    'Empty last extension dropped, compound part kept');
 
 done_testing();
