@@ -47,12 +47,16 @@ sub convert {
     my ($stem, undef, $extension) = fileparse(decode('UTF-8', $filename), qr/ [.] [^.]* /smx);
 
     my $converted = kebab $stem;
-    return $converted if !$extension;
 
-    # Normalize the extension the same way, but without the hyphens
-    (my $ext = kebab substr $extension, 1) =~ tr/-//d;
+    # Normalize the extension the same way, but without the hyphens, and
+    # drop it if nothing is left
+    if ($extension) {
+        (my $ext = kebab substr $extension, 1) =~ tr/-//d;
+        $converted .= ".$ext" if $ext ne q{};
+    }
 
-    return "$converted.$ext";
+    # Leave the name alone rather than reduce it to nothing
+    return $converted ne q{} ? $converted : $filename;
 }
 
 sub run {
