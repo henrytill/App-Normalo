@@ -74,4 +74,16 @@ is(App::Normalo::convert('-Dash.txt'), 'dash.txt',
 is(App::Normalo::convert('foo-.txt'), 'foo.txt',
     'Trailing hyphen trimmed');
 
+is(App::Normalo::convert('!!!.txt'), '!!!.txt',
+    'Name with nothing left of the stem unchanged');
+
+is(App::Normalo::convert('..txt'), '..txt',
+    'Name whose stem is only a separator unchanged');
+
+is(App::Normalo::convert('😀.txt'), '😀.txt',
+    'Name whose stem has no transliteration unchanged');
+
+is(App::Normalo::convert('- .txt'), '- .txt',
+    'Name whose stem is only hyphens and spaces unchanged');
+
 done_testing();
