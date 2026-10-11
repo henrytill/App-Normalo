@@ -89,6 +89,14 @@ sub convert {
     return $converted ne q{} ? $converted : $filename;
 }
 
+# Return the message for a rename from $from to $to that something is already
+# at $to
+sub exists_error {
+    my ($from, $to) = @_;
+
+    return "cannot rename $from to $to: target already exists";
+}
+
 # Rename $from to $to without replacing anything already at $to. Return undef
 # on success, or a message saying why it couldn't be renamed.
 sub rename_noreplace {
@@ -109,10 +117,9 @@ sub rename_noreplace {
     }
 
     # Either the target exists, or this is a filesystem without hard links,
-    # where checking and then renaming leaves a small race. -e follows
-    # symlinks, so check -l too, or a dangling symlink would be replaced.
-    return "cannot rename $from to $to: target already exists"
-        if $OS_ERROR{EEXIST} || -e $to || -l $to;
+    # where checking and then renaming leaves a small race. lstat, unlike -e,
+    # finds a dangling symlink too.
+    return exists_error($from, $to) if $OS_ERROR{EEXIST} || lstat $to;
 
     rename $from, $to or return "failed to rename $from to $to: $OS_ERROR";
 
@@ -180,10 +187,7 @@ sub rename_path {
     my $case_change = is_case_change($path, $new_path);
 
     if ($preview) {
-
-        # -e follows symlinks, so check -l too for a dangling one
-        return "cannot rename $path to $new_path: target already exists"
-            if !$case_change && (-e $new_path || -l $new_path);
+        return exists_error($path, $new_path) if !$case_change && lstat $new_path;
 
         print {$preview} "$path -> $new_path\n";
         return;
