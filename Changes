@@ -1,5 +1,10 @@
 Revision history for Perl extension App::Normalo.
 
+0.05  (unreleased)
+	- Point the POD's BUGS AND LIMITATIONS section at the GitHub issue
+	  tracker, and add bugtracker and repository links to the distribution
+	  metadata (#16)
+
 0.04  Sat Oct 10 19:04:01 2026
 	- Normalize file extensions like the rest of the name: decode them as UTF-8,
 	  transliterate to ASCII, and drop anything that is not alphanumeric. This
