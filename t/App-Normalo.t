@@ -86,7 +86,7 @@ is(App::Normalo::convert('😀.txt'), '😀.txt',
 is(App::Normalo::convert('- .txt'), '- .txt',
     'Name whose stem is only hyphens and spaces unchanged');
 
-ok(!eval { App::Normalo::convert("\xe9t\xe9.txt"); 1 }, 'Latin-1 name is rejected');
-is($@, "name is not valid UTF-8\n", 'Latin-1 name reports why');
+eval { App::Normalo::convert("\xe9t\xe9.txt") };
+is($@, "name is not valid UTF-8\n", 'Latin-1 name is rejected');
 
 done_testing();
