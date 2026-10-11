@@ -141,11 +141,11 @@ sub rename_case {
     my $error = rename_noreplace($path, $tmp);
     return $error if defined $error;
 
-    # If $new_path is still there, it was a separate hard link to the same
-    # file (on a case-sensitive filesystem), so just drop the extra name
+    # If $new_path is still there, it's a separate hard link to the same file
+    # on a case-sensitive filesystem, not this file under another case, so
+    # put the file back rather than remove either name
     if (same_file($tmp, $new_path)) {
-        unlink $tmp or return "failed to remove $tmp: $OS_ERROR";
-        return;
+        return rename_noreplace($tmp, $path) // "cannot rename $path to $new_path: target already exists";
     }
 
     return rename_noreplace($tmp, $new_path);
@@ -167,7 +167,8 @@ sub rename_path {
 
     # On a case-insensitive filesystem, a change of case finds $path itself
     # at $new_path
-    return rename_case($path, $new_path) if same_file($path, $new_path);
+    return rename_case($path, $new_path)
+        if lc $filename eq $kebab_filename && same_file($path, $new_path);
 
     return rename_noreplace($path, $new_path);
 }
