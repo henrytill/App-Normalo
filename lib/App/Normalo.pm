@@ -178,10 +178,6 @@ App::Normalo - Normalize filenames to kebab-case
   my $normalized = App::Normalo::convert('My File Name.txt');
   # Returns: my-file-name.txt
 
-=head1 VERSION
-
-Version 0.07
-
 =head1 DESCRIPTION
 
 App::Normalo is a Perl module for normalizing filenames to kebab-case format.

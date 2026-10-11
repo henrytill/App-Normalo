@@ -3,10 +3,9 @@ Revision history for Perl extension App::Normalo.
 0.08  (unreleased)
 	- Declare the license (perl_5) and the minimum Perl version (5.40) in
 	  the distribution metadata (#12)
-	- Keep the version number in the module only: bin/normalo drops its
-	  copy, flake.nix reads it from the module, README drops its stale
-	  0.03, and a test checks that the POD's VERSION section matches it
-	  (#13)
+	- Keep the version number only in the module's $VERSION: drop the
+	  copies in bin/normalo, the POD and README, and have flake.nix read
+	  it from the module (#13)
 	- Add `make lint` (perlcritic, and perltidy without rewriting files),
 	  and run it in CI through `nix flake check` (#13)
 
