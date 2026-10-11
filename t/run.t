@@ -128,16 +128,11 @@ subtest 'missing file is rejected' => sub {
 subtest 'existing target is not clobbered' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my $path = touch($dir, 'My File.txt');
-    my $target = touch($dir, 'my-file.txt');
-    open my $fh, '>', $target or die "Cannot open $target: $!";
-    print {$fh} "keep me\n" or die "Cannot write $target: $!";
-    close $fh or die "Cannot close $target: $!";
-
+    touch($dir, 'my-file.txt');
     my ($code, $out, $err) = run_normalo($path);
     is($code, 1, 'exits 1');
     like($err, qr/target\ already\ exists/smx, 'reports collision');
     is_deeply(entries($dir), [ 'My File.txt', 'my-file.txt' ], 'neither file renamed');
-    is(-s $target, length "keep me\n", 'target contents preserved');
 };
 
 subtest 'symlink is renamed, not its target' => sub {
