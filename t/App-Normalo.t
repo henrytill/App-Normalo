@@ -90,6 +90,12 @@ eval { App::Normalo::convert("\xe9t\xe9.txt") };
 is($@, "name is not valid UTF-8\n", 'Latin-1 name is rejected');
 
 eval { App::Normalo::convert("a\xef\xbf\xbe.txt") };
-is($@, "name is not valid UTF-8\n", 'Name with a noncharacter is rejected');
+is($@, "name contains a Unicode noncharacter\n", 'Name with a noncharacter is rejected');
+
+eval { App::Normalo::convert("a\xed\xa0\x80.txt") };
+is($@, "name is not valid UTF-8\n", 'Name with an encoded surrogate is rejected');
+
+eval { App::Normalo::convert("a\xef\xbf\xbe\xe9.txt") };
+is($@, "name is not valid UTF-8\n", 'Name with a noncharacter and a Latin-1 byte is rejected');
 
 done_testing();

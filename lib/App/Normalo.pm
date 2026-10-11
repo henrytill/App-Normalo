@@ -43,14 +43,29 @@ sub kebab {
     return $converted;
 }
 
+# Decode $filename strictly as UTF-8, or die saying why it can't be. Refuse
+# to guess at a name in some other encoding: decoding it leniently would turn
+# its non-ASCII bytes into U+FFFD, which kebab then strips without a trace.
+sub decode_name {
+    my ($filename) = @_;
+
+    my $decoded = eval { decode('UTF-8', $filename, FB_CROAK | LEAVE_SRC) };
+    return $decoded if defined $decoded;
+
+    # Strict decoding also refuses noncharacters such as U+FFFE, which are
+    # valid UTF-8 but have no transliteration. Decode leniently to tell them
+    # apart from bytes that aren't UTF-8 at all.
+    my $lax = eval { decode('utf8', $filename, FB_CROAK | LEAVE_SRC) } // q{};
+    die "name contains a Unicode noncharacter\n"
+        if $lax !~ / [^\x{0}-\x{D7FF}\x{E000}-\x{10FFFF}] /smx
+        && $lax =~ / \p{Noncharacter_Code_Point} /smx;
+    die "name is not valid UTF-8\n";
+}
+
 sub convert {
     my ($filename) = @_;
 
-    # Refuse to guess at a name in some other encoding: decoding it
-    # leniently would turn its non-ASCII bytes into U+FFFD, which kebab
-    # then strips without a trace
-    my $decoded = eval { decode('UTF-8', $filename, FB_CROAK | LEAVE_SRC) };
-    die "name is not valid UTF-8\n" if !defined $decoded;
+    my $decoded = decode_name($filename);
 
     # Split the decoded name, so that the extension is split on characters
     # rather than bytes
@@ -201,9 +216,10 @@ Does not modify files on disk.
 Takes a single argument, the filename to normalize, and returns the normalized
 filename as a string. The filename is a byte string, as returned by C<readdir>
 or found in C<@ARGV>, and must be valid UTF-8: C<convert()> dies with
-C<"name is not valid UTF-8\n"> rather than guess at another encoding. It
-decodes strictly, so it also refuses surrogates and Unicode noncharacters such
-as U+FFFE, which would otherwise be dropped from the name without a trace.
+C<"name is not valid UTF-8\n"> rather than guess at another encoding. It also
+dies, with C<"name contains a Unicode noncharacter\n">, on a name containing a
+noncharacter such as U+FFFE, which would otherwise be dropped from the name
+without a trace.
 
 Example:
 

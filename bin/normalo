@@ -90,8 +90,12 @@ The target filename already exists. B<normalo> will not overwrite existing files
 
 The filename isn't valid UTF-8, for example because it was created in
 Latin-1 or another legacy encoding. B<normalo> doesn't guess at other
-encodings, so the file is left alone. Names containing Unicode noncharacters,
-such as U+FFFE, are refused the same way, since they can't be transliterated.
+encodings, so the file is left alone.
+
+=item C<< cannot rename %s: name contains a Unicode noncharacter >>
+
+The filename contains a Unicode noncharacter, such as U+FFFE, which can't be
+transliterated. The file is left alone.
 
 =item C<< failed to rename %s to %s: %s >>
 
