@@ -62,4 +62,16 @@ is(App::Normalo::convert('Foo.!!'), 'foo',
 is(App::Normalo::convert('.!!'), '.!!',
     'Name with nothing left after normalization unchanged');
 
+is(App::Normalo::convert(' foo .txt'), 'foo.txt',
+    'Leading and trailing spaces trimmed');
+
+is(App::Normalo::convert('中文.txt'), 'zhong-wen.txt',
+    'Trailing space from transliteration trimmed');
+
+is(App::Normalo::convert('-Dash.txt'), 'dash.txt',
+    'Leading hyphen trimmed');
+
+is(App::Normalo::convert('foo-.txt'), 'foo.txt',
+    'Trailing hyphen trimmed');
+
 done_testing();

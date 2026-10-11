@@ -11,7 +11,7 @@ use File::Spec::Functions qw(catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 # Preloaded methods go here.
 
@@ -35,6 +35,10 @@ sub kebab {
 
     # Replace multiple consecutive hyphens with single hyphen
     $converted =~ s{ -+ }{-}smxg;
+
+    # Trim hyphens from the ends, so that the result can't be mistaken for an
+    # option
+    $converted =~ s{ \A - | - \z }{}smxg;
 
     return $converted;
 }
@@ -171,7 +175,7 @@ App::Normalo - Normalize filenames to kebab-case
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =head1 DESCRIPTION
 

@@ -6,7 +6,7 @@ use warnings;
 
 use App::Normalo;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 exit App::Normalo->run(@ARGV);
 
@@ -38,6 +38,8 @@ It performs the following transformations:
 =item * Removes non-alphanumeric characters (except hyphens)
 
 =item * Collapses multiple consecutive hyphens into a single hyphen
+
+=item * Removes hyphens from the start and end of the name
 
 =item * Preserves file extensions
 

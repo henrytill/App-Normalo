@@ -106,7 +106,7 @@ subtest 'a file after --' => sub {
     my $path = touch($dir, '-Dash File.txt');
     my ($code) = run_normalo('--', $path);
     is($code, 0, 'exits 0');
-    is_deeply(entries($dir), ['-dash-file.txt'], 'file renamed');
+    is_deeply(entries($dir), ['dash-file.txt'], 'file renamed');
 };
 
 subtest 'directory is rejected' => sub {
