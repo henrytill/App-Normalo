@@ -7,21 +7,12 @@ use File::Spec::Functions qw(catfile);
 use File::Temp qw(tempdir);
 use Test::More;
 
-# Replace link() before App::Normalo is compiled, so that each test can make
-# it misbehave. $before_link runs first; $fail_link, if set, makes it fail
-# with that errno without linking.
-our ($before_link, $fail_link);
+# Replace link() before App::Normalo is compiled, so that a test can run
+# $link_hook in its place
+our $link_hook;
 
 BEGIN {
-    *CORE::GLOBAL::link = sub {
-        my ($old, $new) = @_;
-        $before_link->($old, $new) if $before_link;
-        if ($fail_link) {
-            $! = $fail_link;    ## no critic (Variables::RequireLocalizedPunctuationVars)
-            return 0;
-        }
-        return CORE::link($old, $new);
-    };
+    *CORE::GLOBAL::link = sub { return $link_hook ? $link_hook->(@_) : CORE::link($_[0], $_[1]) };
 }
 
 use App::Normalo;
@@ -49,7 +40,10 @@ subtest 'target created after any check is not clobbered (#10)' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my $path = write_file($dir, 'My File.txt', 'source');
     my $target = catfile($dir, 'my-file.txt');
-    local $before_link = sub { write_file($dir, 'my-file.txt', 'target') };
+    local $link_hook = sub {
+        write_file($dir, 'my-file.txt', 'target');
+        return CORE::link($_[0], $_[1]);
+    };
 
     my $error = App::Normalo::rename_path($path);
     like($error, qr/target\ already\ exists$/smx, 'reports collision');
@@ -60,7 +54,10 @@ subtest 'target created after any check is not clobbered (#10)' => sub {
 subtest 'falls back to rename without hard links' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my $path = write_file($dir, 'My File.txt', 'source');
-    local $fail_link = EPERM;
+    local $link_hook = sub {
+        $! = EPERM;    ## no critic (Variables::RequireLocalizedPunctuationVars)
+        return 0;
+    };
 
     is(App::Normalo::rename_path($path), undef, 'succeeds');
     ok(!-e $path, 'old name gone');
