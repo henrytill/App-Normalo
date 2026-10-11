@@ -101,6 +101,12 @@ transliterated. The file is left alone.
 
 The rename operation failed. The error message from the system is included.
 
+=item C<< failed to remove %s after linking it to %s: %s >>
+
+B<normalo> renames by linking the new name and then removing the old one, so
+that it never replaces a file that appears at the new name. The new name was
+created, but the old one couldn't be removed, so the file now has both names.
+
 =item C<< missing file operand >>
 
 No files were specified on the command line.
