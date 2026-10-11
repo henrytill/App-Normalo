@@ -205,24 +205,9 @@ Does the work of C<run()>, taking its environment as parameters instead of
 from globals. C<run()> calls it with the basename of C<$0> and the standard
 filehandles.
 
-Takes a reference to the list of command-line arguments, then these named
-parameters, all required:
-
-=over 4
-
-=item progname
-
-The program name used in help, version, and error messages.
-
-=item out
-
-The filehandle that help and version output are printed to.
-
-=item err
-
-The filehandle that error messages are printed to.
-
-=back
+Takes a reference to the list of command-line arguments, then three required
+named parameters: C<progname> names the program in messages, help and version
+output go to the C<out> filehandle, and error messages go to C<err>.
 
 Returns an exit code: 0 on success, 1 on error. Does not modify the array that
 C<\@args> refers to.
