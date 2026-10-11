@@ -89,4 +89,7 @@ is(App::Normalo::convert('- .txt'), '- .txt',
 eval { App::Normalo::convert("\xe9t\xe9.txt") };
 is($@, "name is not valid UTF-8\n", 'Latin-1 name is rejected');
 
+eval { App::Normalo::convert("a\xef\xbf\xbe.txt") };
+is($@, "name is not valid UTF-8\n", 'Name with a noncharacter is rejected');
+
 done_testing();
