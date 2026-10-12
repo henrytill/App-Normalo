@@ -220,6 +220,17 @@ subtest 'hard link at the target differing only in case is kept (#2)' => sub {
     is_deeply(entries($dir), [ 'File.txt', 'file.txt' ], 'both names kept, no temporary name left');
 };
 
+subtest 'name given in another case than the one stored' => sub {
+
+    # A case-insensitive filesystem finds FOO.TXT as foo.txt, which is
+    # already normal. Fake that here, where same_file() is all that differs.
+    my $dir = tempdir(CLEANUP => 1);
+    touch($dir, 'foo.txt');
+    no warnings 'redefine';
+    local *App::Normalo::same_file = sub { 1 };
+    ok(App::Normalo::is_case_change(catfile($dir, 'FOO.TXT'), catfile($dir, 'foo.txt')), 'is a case change');
+};
+
 subtest 'hard link at the normalized name is kept' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my $path = touch($dir, 'My File.txt');
