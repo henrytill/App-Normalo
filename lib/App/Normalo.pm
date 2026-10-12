@@ -323,15 +323,17 @@ Converts a filename to kebab-case format and returns the normalized filename.
 Does not modify files on disk.
 
 Takes a single argument, the filename to normalize, and returns the normalized
-filename as a string. A leading dot is kept, and the rest of a dotfile's name is
-normalized like any other. Everything after the last dot is the extension,
-together with any components of one to three letters before it, so
-C<Backup.TAR.GZ> becomes C<backup.tar.gz>. The filename is a byte string, as returned by C<readdir>
+filename as a string. The filename is a byte string, as returned by C<readdir>
 or found in C<@ARGV>, and must be valid UTF-8: C<convert()> dies with
 C<"name is not valid UTF-8\n"> rather than guess at another encoding. It also
 dies, with C<"name contains a Unicode noncharacter\n">, on a name containing a
 noncharacter such as U+FFFE, which would otherwise be dropped from the name
 without a trace.
+
+A leading dot is kept, and the rest of a dotfile's name is normalized like any
+other. Everything after the last dot is the extension, together with any
+components of one to three letters before it, so C<Backup.TAR.GZ> becomes
+C<backup.tar.gz>.
 
 Example:
 
