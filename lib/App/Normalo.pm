@@ -74,8 +74,8 @@ sub convert {
     # the name.
     my ($prefix, $rest) = decode_name($filename) =~ / \A ([.]?) (.*) \z /smx;
 
-    # Everything after the last dot is the extension, along with any short,
-    # all-letter components before it, as in .tar.gz
+    # Everything after the last dot is the extension, along with any
+    # $COMPOUND_EXTENSION components before it
     my @parts = split / [.] /smx, $rest, -1;
     my @extensions = @parts > 1 ? pop @parts : ();
     unshift @extensions, pop @parts while @parts > 1 && $parts[-1] =~ $COMPOUND_EXTENSION;
