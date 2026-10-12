@@ -69,11 +69,10 @@ sub decode_name {
 sub convert {
     my ($filename) = @_;
 
-    # Split the decoded name, so that it's split on characters rather than
+    # Work on the decoded name, so that it's split on characters rather than
     # bytes. A leading dot marks a dotfile: keep it, and treat the rest as
     # the name.
-    my $rest = decode_name($filename);
-    my $prefix = $rest =~ s{ \A [.] }{}smx ? q{.} : q{};
+    my ($prefix, $rest) = decode_name($filename) =~ / \A ([.]?) (.*) \z /smx;
 
     # Everything after the last dot is the extension, along with any short,
     # all-letter components before it, as in .tar.gz
