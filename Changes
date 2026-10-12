@@ -4,6 +4,7 @@ Revision history for Perl extension App::Normalo.
 	- Run perltidy and perlcritic as git-hooks.nix pre-commit hooks, which
 	  `nix develop` installs and `nix flake check` runs, in place of the
 	  `format`, `critic`, and `lint` make targets
+	- Check the formatting of flake.nix with a nixfmt pre-commit hook
 
 0.12  Sun Oct 11 16:33:55 2026
 	- Normalize dotfile names after the leading dot, so `.Hidden File`
