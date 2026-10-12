@@ -46,23 +46,6 @@ WriteMakefile(
     },
 );
 
-sub MY::postamble {
-    return <<'MAKE_FRAG';
-format:
-	perltidy Makefile.PL $(TO_INST_PM) $(EXE_FILES) $(TEST_FILES)
-
-critic:
-	perlcritic Makefile.PL $(TO_INST_PM) $(EXE_FILES) $(TEST_FILES)
-
-# Check that the files are tidy without rewriting them
-lint: critic
-	for f in Makefile.PL $(TO_INST_PM) $(EXE_FILES) $(TEST_FILES); do \
-	  perltidy -nb -se -st --assert-tidy $$f > /dev/null || exit 1; \
-	done
-
-MAKE_FRAG
-}
-
 # Restore .direnv symlinks
 END {
     while (my ($path, $target) = each %direnv_symlinks) {

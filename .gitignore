@@ -5,3 +5,4 @@ MYMETA.json
 blib/
 pm_to_blib
 /result*
+/.pre-commit-config.yaml

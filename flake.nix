@@ -2,12 +2,17 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     utils.url = "github:numtide/flake-utils";
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
   outputs =
     {
       self,
       nixpkgs,
       utils,
+      git-hooks,
     }:
     let
       # Read the version from the module so that it's kept in one place
@@ -39,31 +44,45 @@
         packages.default = pkgs.perlPackages.AppNormalo;
         checks = {
           build = pkgs.perlPackages.AppNormalo;
-          # Makefile.PL writes a Makefile, so lint a writable copy
-          lint =
-            pkgs.runCommand "App-Normalo-lint"
+          # Run with `nix develop -c pre-commit run -a`, or on commit once
+          # `nix develop` has installed the hooks
+          pre-commit = git-hooks.lib.${system}.run {
+            src = ./.;
+            hooks =
+              let
+                # Everything `make` installs or tests, plus Makefile.PL
+                files = "^(Makefile\\.PL|bin/normalo|lib/.*\\.pm|t/.*\\.t)$";
+              in
               {
-                nativeBuildInputs = with pkgs; [
-                  perl
-                  perlcritic
-                  perlPackages.PerlTidy
-                ];
-              }
-              ''
-                cp -r --no-preserve=mode ${self} src
-                cd src
-                perl Makefile.PL
-                make lint
-                touch $out
-              '';
+                # Rewrites files in place (.perltidyrc), which fails the hook
+                perltidy = rec {
+                  enable = true;
+                  package = pkgs.perlPackages.PerlTidy;
+                  entry = "${package}/bin/perltidy";
+                  inherit files;
+                };
+                perlcritic = rec {
+                  enable = true;
+                  package = pkgs.perlcritic;
+                  entry = "${package}/bin/perlcritic";
+                  inherit files;
+                };
+              };
+          };
         };
-        devShell = pkgs.mkShell {
-          inputsFrom = [ pkgs.perlPackages.AppNormalo ];
-          packages = with pkgs; [
-            perlcritic
-            perlPackages.PerlTidy
-          ];
-        };
+        devShell =
+          let
+            inherit (self.checks.${system}.pre-commit) config shellHook enabledPackages;
+          in
+          pkgs.mkShell {
+            inputsFrom = [ pkgs.perlPackages.AppNormalo ];
+            # Install the hooks from a script, so that the exported shellHook
+            # is a store path: the hook's own text has \' escapes, which break
+            # tools that re-source `direnv export bash` output
+            shellHook = "${pkgs.writeShellScript "install-git-hooks" shellHook}";
+            # pre-commit, perltidy, and perlcritic
+            packages = [ config.package ] ++ enabledPackages;
+          };
       }
     );
 }
