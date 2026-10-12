@@ -7,7 +7,7 @@ use warnings;
 use Encode qw(decode FB_CROAK LEAVE_SRC);
 use English qw(-no_match_vars);
 use File::Basename qw(basename dirname fileparse);
-use File::Spec::Functions qw(catfile);
+use File::Spec::Functions qw(canonpath catfile);
 use Getopt::Long qw(GetOptionsFromArray);
 use Text::Unidecode qw(unidecode);
 
@@ -171,13 +171,19 @@ sub is_case_change {
     return $exact < 2;
 }
 
-# Rename $path to its normalized name. With $preview, a filehandle, print
-# "$path -> $new_path" to it instead, after the same checks. Return undef on
-# success, or a message saying why it couldn't be renamed.
+# Rename $path to its normalized name. With $preview, print "$path ->
+# $new_path" to $preview->{out} instead, after the same checks. Return undef
+# on success, or a message saying why it couldn't be renamed.
+#
+# $preview->{paths} maps each path the preview has renamed from or to, as
+# canonpath gives it, to whether it would now exist, so that the checks for
+# later paths see the earlier renames as a real run would.
 sub rename_path {
     my ($path, $preview) = @_;
 
-    return "$path is not a regular file" if !-f $path;
+    my $planned = $preview ? $preview->{paths} : {};
+
+    return "$path is not a regular file" if !($planned->{ canonpath $path } // -f $path);
 
     my $filename = basename $path;
     my $kebab_filename = eval { convert $filename } // return "cannot rename $path: $EVAL_ERROR";
@@ -190,9 +196,13 @@ sub rename_path {
     my $case_change = is_case_change($path, $new_path);
 
     if ($preview) {
-        return exists_error($path, $new_path) if !$case_change && lstat $new_path;
+        return exists_error($path, $new_path) if !$case_change && ($planned->{ canonpath $new_path } // lstat $new_path);
 
-        print {$preview} "$path -> $new_path\n";
+        print { $preview->{out} } "$path -> $new_path\n";
+
+        # After a change of case, $path still finds the file
+        $planned->{ canonpath $path } = 0 if !$case_change;
+        $planned->{ canonpath $new_path } = 1;
         return;
     }
 
@@ -263,9 +273,10 @@ END_HELP
     # Report each failure and keep going, like mv(1), so that one bad path
     # doesn't leave the rest of the batch unprocessed
     my $status = 0;
+    my $preview = $opts{'dry-run'} ? { out => $out, paths => {} } : undef;
 
     foreach my $path (@args) {
-        my $msg = rename_path($path, $opts{'dry-run'} && $out) // next;
+        my $msg = rename_path($path, $preview) // next;
         $error->($msg);
         $status = 1;
     }
