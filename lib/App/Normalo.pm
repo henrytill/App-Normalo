@@ -155,17 +155,18 @@ sub rename_case {
 sub is_case_change {
     my ($path, $new_path) = @_;
 
-    my $name = basename $new_path;
-    return 0 if lc basename($path) ne $name || !same_file($path, $new_path);
+    my ($old_name, $name) = (basename($path), basename($new_path));
+    return 0 if lc $old_name ne $name || !same_file($path, $new_path);
 
     # Two hard links whose names differ only in case are the same file too, on
     # a case-sensitive filesystem. Tell them apart by whether the directory
-    # has an entry with exactly the new name.
+    # has entries with exactly both names. Only one of them is enough: the
+    # file may be stored under the new name and given in another case.
     opendir my $dh, dirname($new_path) or return 0;
-    my $exact = grep { $_ eq $name } readdir $dh;
+    my $exact = grep { $_ eq $old_name || $_ eq $name } readdir $dh;
     closedir $dh;
 
-    return !$exact;
+    return $exact < 2;
 }
 
 # Rename $path to its normalized name. With $preview, a filehandle, print
