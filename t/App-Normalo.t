@@ -128,4 +128,15 @@ is(App::Normalo::convert('My.Notes.txt'), 'my-notes.txt',
 is(App::Normalo::convert('file.tar.!!'), 'file.tar',
     'Empty last extension dropped, compound part kept');
 
+for my $name ('旅行.東京.jpg', 'x.ﬀﬀﬀ.txt', 'photo.Ü.jpg') {
+    my $once = App::Normalo::convert($name);
+    is(App::Normalo::convert($once), $once, "Converting $once again leaves it alone");
+}
+
+is(App::Normalo::convert('旅行.東京.jpg'), 'lu-xing-dong-jing.jpg',
+    'Component that transliterates to more than three letters stays in the name');
+
+is(App::Normalo::convert('photo.Ü.jpg'), 'photo.u.jpg',
+    'Component that transliterates to a short extension is kept');
+
 done_testing();

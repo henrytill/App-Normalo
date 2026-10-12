@@ -14,8 +14,8 @@ use Text::Unidecode qw(unidecode);
 our $VERSION = '0.12';
 
 # A component before the last extension that still counts as part of the
-# extension, like the "tar" in .tar.gz
-my $COMPOUND_EXTENSION = qr/ \A [[:alpha:]]{1,3} \z /smx;
+# extension once normalized, like the "tar" in .tar.gz
+my $COMPOUND_EXTENSION = qr/ \A [a-z]{1,3} \z /smx;
 
 # Preloaded methods go here.
 
@@ -47,6 +47,14 @@ sub kebab {
     return $converted;
 }
 
+# Normalize an extension like a name, but without the hyphens
+sub kebab_extension {
+    my ($text) = @_;
+
+    (my $ext = kebab $text) =~ tr/-//d;
+    return $ext;
+}
+
 # Decode $filename strictly as UTF-8, or die saying why it can't be. Refuse
 # to guess at a name in some other encoding: decoding it leniently would turn
 # its non-ASCII bytes into U+FFFD, which kebab then strips without a trace.
@@ -75,10 +83,16 @@ sub convert {
     my ($prefix, $rest) = decode_name($filename) =~ / \A ([.]?) (.*) \z /smx;
 
     # Everything after the last dot is the extension, along with any
-    # $COMPOUND_EXTENSION components before it
+    # components before it that normalize to a $COMPOUND_EXTENSION. Test the
+    # normalized form, so that converting the result again leaves it alone.
     my @parts = split / [.] /smx, $rest, -1;
-    my @extensions = @parts > 1 ? pop @parts : ();
-    unshift @extensions, pop @parts while @parts > 1 && $parts[-1] =~ $COMPOUND_EXTENSION;
+    my @extensions = @parts > 1 ? kebab_extension(pop @parts) : ();
+    while (@parts > 1) {
+        my $ext = kebab_extension($parts[-1]);
+        last if $ext !~ $COMPOUND_EXTENSION;
+        unshift @extensions, $ext;
+        pop @parts;
+    }
 
     my $converted = kebab join q{.}, @parts;
 
@@ -86,14 +100,8 @@ sub convert {
     # extension that would hide the file
     return $filename if $converted eq q{};
 
-    # Normalize each extension the same way, but without the hyphens, and
-    # drop any that are left empty
-    foreach my $extension (@extensions) {
-        (my $ext = kebab $extension) =~ tr/-//d;
-        $converted .= ".$ext" if $ext ne q{};
-    }
-
-    return $prefix . $converted;
+    # Drop any extension that normalized to nothing
+    return join q{.}, $prefix . $converted, grep { $_ ne q{} } @extensions;
 }
 
 # Return the message for a rename from $from to $to that something is already
@@ -332,8 +340,8 @@ without a trace.
 
 A leading dot is kept, and the rest of a dotfile's name is normalized like any
 other. Everything after the last dot is the extension, together with any
-components of one to three letters before it, so C<Backup.TAR.GZ> becomes
-C<backup.tar.gz>.
+components before it that normalize to one to three letters, so
+C<Backup.TAR.GZ> becomes C<backup.tar.gz>.
 
 Example:
 
