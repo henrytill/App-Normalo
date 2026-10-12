@@ -139,6 +139,21 @@ subtest '--dry-run reports what would fail' => sub {
     is_deeply(entries($dir), [ 'Free File.txt', 'Taken File.txt', 'taken-file.txt' ], 'renames nothing');
 };
 
+subtest '--dry-run sees the renames before it' => sub {
+    my $dir = tempdir(CLEANUP => 1);
+    my @paths = map { touch($dir, $_) } ('A B.txt', 'a_b.txt');
+    my $repeat = touch($dir, 'Foo.txt');
+    my $later = catfile($dir, 'foo.txt');
+    my ($code, $out, $err) = run_normalo('--dry-run', @paths, $repeat, $repeat, $later);
+    is($code, 1, 'exits 1, as a real run would');
+    is($out, "$paths[0] -> " . catfile($dir, 'a-b.txt') . "\n$repeat -> $later\n", 'previews each rename once');
+    my @lines = split /\n/smx, $err;
+    is(scalar @lines, 2, 'reports two failures');
+    like($lines[0], qr/target\ already\ exists$/smx, 'reports a target taken earlier in the run');
+    like($lines[1], qr/is\ not\ a\ regular\ file$/smx, 'reports a path renamed earlier in the run');
+    is_deeply(entries($dir), [ 'A B.txt', 'Foo.txt', 'a_b.txt' ], 'renames nothing');
+};
+
 subtest 'already normalized file is left alone' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my $path = touch($dir, 'already-normal.txt');
