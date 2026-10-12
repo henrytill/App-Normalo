@@ -54,6 +54,7 @@
                 files = "^(Makefile\\.PL|bin/normalo|lib/.*\\.pm|t/.*\\.t)$";
               in
               {
+                nixfmt.enable = true;
                 # Rewrites files in place (.perltidyrc), which fails the hook
                 perltidy = rec {
                   enable = true;
@@ -80,7 +81,7 @@
             # is a store path: the hook's own text has \' escapes, which break
             # tools that re-source `direnv export bash` output
             shellHook = "${pkgs.writeShellScript "install-git-hooks" shellHook}";
-            # pre-commit, perltidy, and perlcritic
+            # pre-commit, perltidy, perlcritic, and nixfmt
             packages = [ config.package ] ++ enabledPackages;
           };
       }
