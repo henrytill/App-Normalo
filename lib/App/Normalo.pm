@@ -161,8 +161,10 @@ sub is_case_change {
     # Two hard links whose names differ only in case are the same file too, on
     # a case-sensitive filesystem. Tell them apart by whether the directory
     # has entries with exactly both names. Only one of them is enough: the
-    # file may be stored under the new name and given in another case.
-    opendir my $dh, dirname($new_path) or return 0;
+    # file may be stored under the new name and given in another case. A
+    # rename doesn't need to read the directory, so if that isn't allowed,
+    # fall back on the link count: a file with one link can't be two.
+    opendir my $dh, dirname($new_path) or return (lstat $path)[3] == 1;
     my $exact = grep { $_ eq $old_name || $_ eq $name } readdir $dh;
     closedir $dh;
 

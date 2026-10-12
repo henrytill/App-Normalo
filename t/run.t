@@ -231,6 +231,24 @@ subtest 'name given in another case than the one stored' => sub {
     ok(App::Normalo::is_case_change(catfile($dir, 'FOO.TXT'), catfile($dir, 'foo.txt')), 'is a case change');
 };
 
+subtest 'case change in a directory that cannot be read' => sub {
+    plan skip_all => 'running as root ignores directory permissions' if $> == 0;
+    my $dir = tempdir(CLEANUP => 1);
+    my $path = touch($dir, 'File.txt');
+    no warnings 'redefine';
+    local *App::Normalo::same_file = sub { 1 };
+    chmod 0300, $dir or die "Cannot chmod $dir: $!";
+    my $single = App::Normalo::is_case_change($path, catfile($dir, 'file.txt'));
+    chmod 0700, $dir or die "Cannot chmod $dir: $!";
+    ok($single, 'a file with one link is a case change');
+
+    link $path, catfile($dir, 'Other.txt') or plan skip_all => "hard links not supported: $!";
+    chmod 0300, $dir or die "Cannot chmod $dir: $!";
+    my $linked = App::Normalo::is_case_change($path, catfile($dir, 'file.txt'));
+    chmod 0700, $dir or die "Cannot chmod $dir: $!";
+    ok(!$linked, 'a file with more links might be a hard link, so is not');
+};
+
 subtest 'hard link at the normalized name is kept' => sub {
     my $dir = tempdir(CLEANUP => 1);
     my $path = touch($dir, 'My File.txt');
