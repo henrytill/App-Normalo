@@ -54,8 +54,9 @@
                 files = "^(Makefile\\.PL|bin/normalo|lib/.*\\.pm|t/.*\\.t)$";
               in
               {
+                # The formatters, nixfmt and perltidy (through -b in
+                # .perltidyrc), rewrite files in place, which fails the hook
                 nixfmt.enable = true;
-                # Rewrites files in place (.perltidyrc), which fails the hook
                 perltidy = rec {
                   enable = true;
                   package = pkgs.perlPackages.PerlTidy;
