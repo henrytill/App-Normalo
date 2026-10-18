@@ -60,13 +60,13 @@
                 perltidy = rec {
                   enable = true;
                   package = pkgs.perlPackages.PerlTidy;
-                  entry = "${package}/bin/perltidy";
+                  entry = "${pkgs.lib.getExe package}";
                   inherit files;
                 };
                 perlcritic = rec {
                   enable = true;
                   package = pkgs.perlcritic;
-                  entry = "${package}/bin/perlcritic";
+                  entry = "${pkgs.lib.getExe package}";
                   inherit files;
                 };
               };
