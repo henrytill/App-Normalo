@@ -47,7 +47,7 @@
           # Run with `nix develop -c pre-commit run -a`, or on commit once
           # `nix develop` has installed the hooks
           pre-commit = git-hooks.lib.${system}.run {
-            src = ./.;
+            src = self;
             hooks =
               let
                 # Everything `make` installs or tests, plus Makefile.PL
